@@ -1,5 +1,9 @@
 import requests
 import pandas as pd
+import re
+
+def cross_chain_assets(crypto_id):
+        print(bool(re.search(r"\bbridged\b", crypto_id, re.IGNORECASE)) | bool(re.search(r"\bwrapped\b", crypto_id, re.IGNORECASE)))
 
 def crypto_ticker_list():
     url = "https://api.coingecko.com/api/v3/coins/list"
@@ -17,7 +21,7 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
 
     response = requests.get(url, headers=headers)
 
-    if response.json()["market_data"]["market_cap"]["usd"] > marketcap_min:
+    if bool(cross_chain_assets(crypt_dict['id'])) ==  False | response.json()["market_data"]["market_cap"]["usd"] > marketcap_min:
         
         crypt_dict['categories'] = response.json()['categories']
         crypt_dict["market_cap (usd)"]=response.json()["market_data"]["market_cap"]["usd"]
