@@ -1,11 +1,32 @@
 id,symbol,name,categories,market_cap (usd),market_cap_rank,fully_diluted_valuation (usd)
-0x,zrx,0x Protocol,"['Decentralized Exchange (DEX)', 'Decentralized Finance (DeFi)', 'Avalanche Ecosystem', 'Harmony Ecosystem', 'Ethereum Ecosystem', 'Coinbase Ventures Portfolio', 'Pantera Capital Portfolio', 'Energi Ecosystem', 'GMCI DeFi Index', 'Blockchain Capital Portfolio', 'GMCI Index', 'Made in USA']",226842684,242,267378127
-0x0-ai-ai-smart-contract,0x0,0x0.ai: AI Smart Contract,"['Artificial Intelligence (AI)', 'Ethereum Ecosystem']",69385829,550,69385829
-1guy,1guy,1GUY,"['BNB Chain Ecosystem', 'Meme']",6570121,1698,6570121
-1inch,1inch,1inch,"['Decentralized Exchange (DEX)', 'Exchange-based Tokens', 'Decentralized Finance (DeFi)', 'Automated Market Maker (AMM)', 'BNB Chain Ecosystem', 'Avalanche Ecosystem', 'Polygon Ecosystem', 'Near Protocol Ecosystem', 'Harmony Ecosystem', 'Ethereum Ecosystem', 'FTX Holdings', 'Alameda Research Portfolio', 'DragonFly Capital Portfolio', 'Pantera Capital Portfolio', 'Energi Ecosystem', 'Binance Labs Portfolio', 'GMCI DeFi Index', 'Galaxy Digital Portfolio', 'Blockchain Capital Portfolio', 'Dex Aggregator', 'GMCI Index', 'Coinbase 50 Index']",311841592,196,339877920
-360noscope420blazeit,mlg,360noscope420blazeit,"['Solana Ecosystem', 'Meme', 'Solana Meme']",8468463,1562,8468463
-42-coin,42,42-coin,['BNB Chain Ecosystem'],6948846,1671,6948854
-888-token,888,888,"['Solana Ecosystem', 'Meme', 'Solana Meme']",5185900,1853,5185900
-aave,aave,Aave,"['Decentralized Finance (DeFi)', 'Yield Farming', 'BNB Chain Ecosystem', 'Lending/Borrowing Protocols', 'Avalanche Ecosystem', 'Polygon Ecosystem', 'Near Protocol Ecosystem', 'Fantom Ecosystem', 'Harmony Ecosystem', 'Arbitrum Ecosystem', 'Ethereum Ecosystem', 'Optimism Ecosystem', 'Base Ecosystem', 'Index Coop Defi Index', 'Energi Ecosystem', 'Sora Ecosystem', 'Huobi ECO Chain Ecosystem', 'GMCI DeFi Index', 'Blockchain Capital Portfolio', 'Index Coop Index', 'GMCI Index', 'World Liberty Financial Portfolio', 'Coinbase 50 Index']",2868249719,43,3041936153
-aarma-2,arma,Aarma,[],10056782,1462,37385414
-aavegotchi,ghst,Aavegotchi,"['Smart Contract Platform', 'Gaming (GameFi)', 'NFT', 'Metaverse', 'Collectibles', 'Polygon Ecosystem', 'Meme', 'Play To Earn', 'Ethereum Ecosystem', 'Gotchiverse', 'Base Ecosystem', 'Layer 3 (L3)', 'Gaming Governance Token', 'Gaming Utility Token', 'Energi Ecosystem']",22313548,1023,23007313
+0x,zrx,0x Protocol,"['Decentralized Exchange (DEX)', 'Decentralized Finance (DeFi)', 'Avalanche Ecosystem', 'Harmony Ecosystem', 'Ethereum Ecosystem', 'Coinbase Ventures Portfolio', 'Pantera Capital Portfolio', 'Energi Ecosystem', 'GMCI DeFi Index', 'Blockchain Capital Portfolio', 'GMCI Index', 'Made in USA']",223415667,244,263338722
+0x0-ai-ai-smart-contract,0x0,0x0.ai: AI Smart Contract,"['Artificial Intelligence (AI)', 'Ethereum Ecosystem']",66608908,559,66608908
+1guy,1guy,1GUY,"['BNB Chain Ecosystem', 'Meme']",6570121,1697,6570121
+1inch,1inch,1inch,"['Decentralized Exchange (DEX)', 'Exchange-based Tokens', 'Decentralized Finance (DeFi)', 'Automated Market Maker (AMM)', 'BNB Chain Ecosystem', 'Avalanche Ecosystem', 'Polygon Ecosystem', 'Near Protocol Ecosystem', 'Harmony Ecosystem', 'Ethereum Ecosystem', 'FTX Holdings', 'Alameda Research Portfolio', 'DragonFly Capital Portfolio', 'Pantera Capital Portfolio', 'Energi Ecosystem', 'Binance Labs Portfolio', 'GMCI DeFi Index', 'Galaxy Digital Portfolio', 'Blockchain Capital Portfolio', 'Dex Aggregator', 'GMCI Index', 'Coinbase 50 Index']",312911920,198,341044476
+42-coin,42,42-coin,['BNB Chain Ecosystem'],6504660,1706,6504668
+360noscope420blazeit,mlg,360noscope420blazeit,"['Solana Ecosystem', 'Meme', 'Solana Meme']",7934502,1580,7934502
+888-token,888,888,"['Solana Ecosystem', 'Meme', 'Solana Meme']",5080129,1861,5080129
+aarma-2,arma,Aarma,[],10056782,1465,37385414
+aave,aave,Aave,"['Decentralized Finance (DeFi)', 'Yield Farming', 'BNB Chain Ecosystem', 'Lending/Borrowing Protocols', 'Avalanche Ecosystem', 'Polygon Ecosystem', 'Near Protocol Ecosystem', 'Fantom Ecosystem', 'Harmony Ecosystem', 'Arbitrum Ecosystem', 'Ethereum Ecosystem', 'Optimism Ecosystem', 'Base Ecosystem', 'Index Coop Defi Index', 'Energi Ecosystem', 'Sora Ecosystem', 'Huobi ECO Chain Ecosystem', 'GMCI DeFi Index', 'Blockchain Capital Portfolio', 'Index Coop Index', 'GMCI Index', 'World Liberty Financial Portfolio', 'Coinbase 50 Index']",2950356366,42,3129001160
+aavegotchi,ghst,Aavegotchi,"['Smart Contract Platform', 'Gaming (GameFi)', 'NFT', 'Metaverse', 'Collectibles', 'Polygon Ecosystem', 'Meme', 'Play To Earn', 'Ethereum Ecosystem', 'Gotchiverse', 'Base Ecosystem', 'Layer 3 (L3)', 'Gaming Governance Token', 'Gaming Utility Token', 'Energi Ecosystem']",21913131,1028,22594446
+abtc,abtc,aBTC,"['Decentralized Finance (DeFi)', 'Aptos Ecosystem']",185915687,277,185915687
+access-protocol,acs,Access Protocol,"['SocialFi', 'Solana Ecosystem']",66618756,560,144670807
+acala,aca,Acala,"['Smart Contract Platform', 'Decentralized Finance (DeFi)', 'Polkadot Ecosystem', 'Layer 1 (L1)', 'Coinbase Ventures Portfolio', 'Pantera Capital Portfolio']",45075581,699,61817941
+acet-token,act,Acet,['BNB Chain Ecosystem'],168264351,307,172493071
+ac-milan-fan-token,acm,AC Milan Fan Token,"['Sports', 'Fan Token', 'Binance Launchpad', 'Chiliz Ecosystem']",6714596,1687,18946370
+across-protocol,acx,Across Protocol,"['Polygon Ecosystem', 'Arbitrum Ecosystem', 'Ethereum Ecosystem', 'Optimism Ecosystem', 'Bridge Governance Tokens', 'Intent', 'Boba Network Ecosystem', 'Blockchain Capital Portfolio', 'Made in USA']",97334471,442,241303351
+acolyte-by-virtuals,acolyt,Acolyt,"['Solana Ecosystem', 'Base Ecosystem', 'AI Agents', 'Virtuals Protocol Ecosystem']",10014905,1466,10014905
+adappter-token,adp,Adappter,"['Ethereum Ecosystem', 'DWF Labs Portfolio']",6971664,1665,16860811
+act-i-the-ai-prophecy,act,Act I The AI Prophecy,"['Solana Ecosystem', 'Meme', 'Solana Meme', 'AI Meme', 'Pump.fun Ecosystem']",181331342,286,181331342
+adex,adx,AdEx,"['Media', 'Marketing', 'BNB Chain Ecosystem', 'Polygon Ecosystem', 'Ethereum Ecosystem']",16675635,1205,17364903
+adshares,ads,Adshares,"['Business Services', 'Decentralized Finance (DeFi)', 'BNB Chain Ecosystem', 'Metaverse', 'Polygon Ecosystem', 'Ethereum Ecosystem']",20936034,1063,20943465
+adventure-gold,agld,Adventure Gold,"['Ethereum Ecosystem', 'DWF Labs Portfolio']",107606600,405,107606600
+advertise-coin,adco,Advertise Coin,['Ethereum Ecosystem'],21655638,1040,24061820
+aergo,aergo,Aergo,"['Smart Contract Platform', 'Ethereum Ecosystem', 'Sequoia Capital Portfolio']",33128926,837,35057064
+aerodrome-finance,aero,Aerodrome Finance,"['Decentralized Exchange (DEX)', 'Decentralized Finance (DeFi)', 'Automated Market Maker (AMM)', 'Base Ecosystem', 'Binance Alpha Spotlight', 'Made in USA']",478357453,147,928049111
+aelf,elf,aelf,"['Infrastructure', 'Smart Contract Platform', 'BNB Chain Ecosystem', 'Layer 1 (L1)', 'Ethereum Ecosystem', 'GMCI Layer 1 Index', 'Aelf Ecosystem', 'GMCI Index']",177873316,291,239796519
+aerobud,aerobud,AEROBUD,"['Charity', 'Meme', 'Base Ecosystem', 'Dog-Themed', 'Base Meme', 'Made in USA']",7872497,1592,7872497
+aeternity,ae,Aeternity,"['Infrastructure', 'Smart Contract Platform']",9069395,1516,11265194
+aethir,ath,Aethir,"['Solana Ecosystem', 'Arbitrum Ecosystem', 'Impossible Finance Launchpad', 'Ethereum Ecosystem', 'DePIN', 'Animoca Brands Portfolio']",236278386,232,1481668550
+aevo-exchange,aevo,Aevo,"['Smart Contract Platform', 'Decentralized Finance (DeFi)', 'Binance Launchpool', 'Derivatives', 'Perpetuals', 'Ethereum Ecosystem', 'Layer 2 (L2)', 'DragonFly Capital Portfolio', 'Pantera Capital Portfolio']",112661884,395,124741054
+agenda-47,a47,AGENDA 47,"['Solana Ecosystem', 'Meme', 'Pump.fun Ecosystem']",21564808,1045,21564808

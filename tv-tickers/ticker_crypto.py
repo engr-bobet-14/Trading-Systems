@@ -52,16 +52,16 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
         print(f"Error fetching data for {crypt_dict['id']}: {e}")
     return None
 
-# Main execution logic with adjusted parallel computing, batching, and progress bar
+# Main execution logic with optimized concurrency, batching, progress bar, and interim saving
 if __name__ == "__main__":
     start_time = time.time()
     crypto_tickers = crypto_ticker_list()
     filtered_crypto_list = []
 
-    # Tuned parameters for CoinGecko API limits
-    MAX_WORKERS = 5
-    BATCH_SIZE = 20
-    SLEEP_TIME = 60
+    # Optimized parameters balancing speed and reliability
+    MAX_WORKERS = 8
+    BATCH_SIZE = 30
+    SLEEP_TIME = 45
 
     total_batches = (len(crypto_tickers) + BATCH_SIZE - 1) // BATCH_SIZE
 
@@ -74,9 +74,9 @@ if __name__ == "__main__":
                 if result:
                     filtered_crypto_list.append(result)
 
-        # Save interim results
+        # Save interim results after each batch
         pd.DataFrame(filtered_crypto_list).to_csv("categories_interim.csv", index=False)
-        
+
         if (i // BATCH_SIZE) + 1 < total_batches:
             time.sleep(SLEEP_TIME)
 
