@@ -4,10 +4,16 @@ import re
 import concurrent.futures
 import time
 from requests.adapters import HTTPAdapter, Retry
+from tqdm import tqdm
 
 # Configure requests session with retries and exponential back-off
 session = requests.Session()
-retries = Retry(total=10, backoff_factor=2, status_forcelist=[429, 502, 503, 504])
+retries = Retry(
+    total=10,
+    backoff_factor=5,
+    status_forcelist=[429, 502, 503, 504],
+    respect_retry_after_header=True
+)
 session.mount('https://', HTTPAdapter(max_retries=retries))
 
 # Precompile regex for filtering wrapped and bridged assets
@@ -46,32 +52,37 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
         print(f"Error fetching data for {crypt_dict['id']}: {e}")
     return None
 
-# Main execution logic with controlled batching and concurrency
+# Main execution logic with adjusted parallel computing, batching, and progress bar
 if __name__ == "__main__":
     start_time = time.time()
     crypto_tickers = crypto_ticker_list()
     filtered_crypto_list = []
 
-    # Parameters tuned for CoinGecko API limits
-    MAX_WORKERS = 10
-    BATCH_SIZE = 50
+    # Tuned parameters for CoinGecko API limits
+    MAX_WORKERS = 5
+    BATCH_SIZE = 20
     SLEEP_TIME = 60
 
-    for i in range(0, len(crypto_tickers), BATCH_SIZE):
+    total_batches = (len(crypto_tickers) + BATCH_SIZE - 1) // BATCH_SIZE
+
+    for i in tqdm(range(0, len(crypto_tickers), BATCH_SIZE), desc="Processing Batches"):
         batch = crypto_tickers[i:i + BATCH_SIZE]
         with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            futures = [executor.submit(crypto_market_data, crypto) for crypto in batch]
+            futures = {executor.submit(crypto_market_data, crypto): crypto for crypto in batch}
             for future in concurrent.futures.as_completed(futures):
                 result = future.result()
                 if result:
                     filtered_crypto_list.append(result)
 
-        print(f"Processed batch {(i // BATCH_SIZE) + 1}/{(len(crypto_tickers) + BATCH_SIZE - 1) // BATCH_SIZE}, sleeping for {SLEEP_TIME}s...")
-        time.sleep(SLEEP_TIME)
+        # Save interim results
+        pd.DataFrame(filtered_crypto_list).to_csv("categories_interim.csv", index=False)
+        
+        if (i // BATCH_SIZE) + 1 < total_batches:
+            time.sleep(SLEEP_TIME)
 
-    # Save results to CSV
+    # Final save to CSV
     df = pd.DataFrame(filtered_crypto_list)
-    df.to_csv("categories.csv", index=False)
+    df.to_csv("categories_final.csv", index=False)
 
     end_time = time.time()
-    print(f"Data scraping completed in {end_time - start_time:.2f} seconds. Total valid cryptocurrencies: {len(filtered_crypto_list)}")
+    print(f"\nData scraping completed in {(end_time - start_time)/60:.2f} minutes. Total valid cryptocurrencies: {len(filtered_crypto_list)}")
