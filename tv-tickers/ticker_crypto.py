@@ -1,47 +1,77 @@
 import requests
 import pandas as pd
 import re
+import concurrent.futures
+import time
+from requests.adapters import HTTPAdapter, Retry
 
-def cross_chain_assets(crypto_id):
-        print(bool(re.search(r"\bbridged\b", crypto_id, re.IGNORECASE)) | bool(re.search(r"\bwrapped\b", crypto_id, re.IGNORECASE)))
+# Configure requests session with retries and exponential back-off
+session = requests.Session()
+retries = Retry(total=10, backoff_factor=2, status_forcelist=[429, 502, 503, 504])
+session.mount('https://', HTTPAdapter(max_retries=retries))
 
+# Precompile regex for filtering wrapped and bridged assets
+cross_chain_regex = re.compile(r"\b(bridged|wrapped)\b", re.IGNORECASE)
+
+def is_cross_chain(name):
+    return bool(cross_chain_regex.search(name))
+
+# Retrieve list of cryptocurrencies
 def crypto_ticker_list():
     url = "https://api.coingecko.com/api/v3/coins/list"
-
-    headers = {"accept": "application/json"}
-
-    response = requests.get(url, headers=headers)
-
+    response = session.get(url, headers={"accept": "application/json"})
+    response.raise_for_status()
     return response.json()
 
+# Retrieve market data for each cryptocurrency with filtering criteria
 def crypto_market_data(crypt_dict, marketcap_min=5000000):
+    try:
+        url = f"https://api.coingecko.com/api/v3/coins/{crypt_dict['id']}"
+        response = session.get(url, headers={"accept": "application/json"})
+        response.raise_for_status()
+        data = response.json()
 
-    url = "https://api.coingecko.com/api/v3/coins/{0}".format(crypt_dict['id'])
-    headers = {"accept": "application/json"}
+        market_cap = data.get("market_data", {}).get("market_cap", {}).get("usd", 0)
+        if market_cap >= marketcap_min and not is_cross_chain(crypt_dict['name']):
+            return {
+                'id': crypt_dict['id'],
+                'symbol': crypt_dict['symbol'],
+                'name': crypt_dict['name'],
+                'categories': data.get('categories', []),
+                'market_cap (usd)': market_cap,
+                'market_cap_rank': data.get('market_cap_rank', None),
+                'fully_diluted_valuation (usd)': data.get('market_data', {}).get('fully_diluted_valuation', {}).get('usd', None)
+            }
+    except requests.RequestException as e:
+        print(f"Error fetching data for {crypt_dict['id']}: {e}")
+    return None
 
-    response = requests.get(url, headers=headers)
-
-    if bool(cross_chain_assets(crypt_dict['id'])) ==  False | response.json()["market_data"]["market_cap"]["usd"] > marketcap_min:
-        
-        crypt_dict['categories'] = response.json()['categories']
-        crypt_dict["market_cap (usd)"]=response.json()["market_data"]["market_cap"]["usd"]
-        crypt_dict['market_cap_rank']=response.json()['market_cap_rank']
-        crypt_dict['fully_diluted_valuation (usd)']=response.json()['market_data']['fully_diluted_valuation']['usd']
-    
-        return crypt_dict
-    
-    else:
-        pass
-
+# Main execution logic with controlled batching and concurrency
 if __name__ == "__main__":
-
+    start_time = time.time()
     crypto_tickers = crypto_ticker_list()
+    filtered_crypto_list = []
 
-    crypto_list = []
+    # Parameters tuned for CoinGecko API limits
+    MAX_WORKERS = 10
+    BATCH_SIZE = 50
+    SLEEP_TIME = 60
 
-    for crypto in crypto_tickers:
-        crypto_list.append(crypto_market_data(crypto))
-    
-    print(crypto_list)
+    for i in range(0, len(crypto_tickers), BATCH_SIZE):
+        batch = crypto_tickers[i:i + BATCH_SIZE]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            futures = [executor.submit(crypto_market_data, crypto) for crypto in batch]
+            for future in concurrent.futures.as_completed(futures):
+                result = future.result()
+                if result:
+                    filtered_crypto_list.append(result)
 
-    pd.DataFrame(crypto_list).to_csv("categories.csv")
+        print(f"Processed batch {(i // BATCH_SIZE) + 1}/{(len(crypto_tickers) + BATCH_SIZE - 1) // BATCH_SIZE}, sleeping for {SLEEP_TIME}s...")
+        time.sleep(SLEEP_TIME)
+
+    # Save results to CSV
+    df = pd.DataFrame(filtered_crypto_list)
+    df.to_csv("categories.csv", index=False)
+
+    end_time = time.time()
+    print(f"Data scraping completed in {end_time - start_time:.2f} seconds. Total valid cryptocurrencies: {len(filtered_crypto_list)}")
