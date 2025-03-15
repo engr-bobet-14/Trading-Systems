@@ -29,7 +29,7 @@ def crypto_ticker_list():
     response.raise_for_status()
     return response.json()
 
-# Retrieve market data for each cryptocurrency with filtering criteria
+# Retrieve market data for each cryptocurrency with robust filtering
 def crypto_market_data(crypt_dict, marketcap_min=5000000):
     try:
         url = f"https://api.coingecko.com/api/v3/coins/{crypt_dict['id']}"
@@ -37,17 +37,22 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
         response.raise_for_status()
         data = response.json()
 
-        market_cap = data.get("market_data", {}).get("market_cap", {}).get("usd", 0)
-        if market_cap >= marketcap_min and not is_cross_chain(crypt_dict['name']):
-            return {
-                'id': crypt_dict['id'],
-                'symbol': crypt_dict['symbol'],
-                'name': crypt_dict['name'],
-                'categories': data.get('categories', []),
-                'market_cap (usd)': market_cap,
-                'market_cap_rank': data.get('market_cap_rank', None),
-                'fully_diluted_valuation (usd)': data.get('market_data', {}).get('fully_diluted_valuation', {}).get('usd', None)
-            }
+        market_cap = data.get("market_data", {}).get("market_cap", {}).get("usd")
+        if market_cap is None:
+            market_cap = 0
+
+        if market_cap < marketcap_min or is_cross_chain(crypt_dict['name']):
+            return None
+
+        return {
+            'id': crypt_dict['id'],
+            'symbol': crypt_dict['symbol'],
+            'name': crypt_dict['name'],
+            'categories': data.get('categories', []),
+            'market_cap (usd)': market_cap,
+            'market_cap_rank': data.get('market_cap_rank', None),
+            'fully_diluted_valuation (usd)': data.get('market_data', {}).get('fully_diluted_valuation', {}).get('usd', None)
+        }
     except requests.RequestException as e:
         print(f"Error fetching data for {crypt_dict['id']}: {e}")
     return None
