@@ -37,22 +37,25 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
         response.raise_for_status()
         data = response.json()
 
-        market_cap = data.get("market_data", {}).get("market_cap", {}).get("usd")
-        if market_cap is None:
-            market_cap = 0
+        market_cap = data.get("market_data", {}).get("market_cap", {}).get("usd") or 0
 
         if market_cap < marketcap_min or is_cross_chain(crypt_dict['name']):
             return None
+
+        ticker_exchange_data = data['tickers'][0] if data.get('tickers') else {}
 
         return {
             'id': crypt_dict['id'],
             'symbol': crypt_dict['symbol'],
             'name': crypt_dict['name'],
             'categories': data.get('categories', []),
-            'market_cap (usd)': market_cap,
-            'market_cap_rank': data.get('market_cap_rank', None),
-            'fully_diluted_valuation (usd)': data.get('market_data', {}).get('fully_diluted_valuation', {}).get('usd', None)
+            'circulation_supply': data.get('market_data', {}).get('circulating_supply'),
+            'total_supply': data.get('market_data', {}).get('total_supply'),
+            'market_cap_rank': data.get('market_cap_rank'),
+            'exchange': ticker_exchange_data.get('market', {}).get('name'),
+            'crypto_pair(usd)': f"{ticker_exchange_data.get('base', '')}/{ticker_exchange_data.get('target', '')}"
         }
+
     except requests.RequestException as e:
         print(f"Error fetching data for {crypt_dict['id']}: {e}")
     return None
@@ -63,7 +66,6 @@ if __name__ == "__main__":
     crypto_tickers = crypto_ticker_list()
     filtered_crypto_list = []
 
-    # Optimized parameters balancing speed and reliability
     MAX_WORKERS = 8
     BATCH_SIZE = 30
     SLEEP_TIME = 45
@@ -79,13 +81,11 @@ if __name__ == "__main__":
                 if result:
                     filtered_crypto_list.append(result)
 
-        # Save interim results after each batch
         pd.DataFrame(filtered_crypto_list).to_csv("categories_interim.csv", index=False)
 
         if (i // BATCH_SIZE) + 1 < total_batches:
             time.sleep(SLEEP_TIME)
 
-    # Final save to CSV
     df = pd.DataFrame(filtered_crypto_list)
     df.to_csv("categories_final.csv", index=False)
 
