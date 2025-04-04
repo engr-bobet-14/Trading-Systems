@@ -49,12 +49,12 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
             'symbol': crypt_dict['symbol'],
             'name': crypt_dict['name'],
             'categories': data.get('categories', []),
-            'circulation_supply': data.get('market_data', {}).get('circulating_supply'),
-            'total_supply': data.get('market_data', {}).get('total_supply'),
-            'market_cap_rank': data.get('market_cap_rank'),
-            'exchange': ticker_exchange_data.get('market', {}).get('name'),
+            'circulation_supply': data.get('market_data', {}).get('circulating_supply', None),
+            'total_supply': data.get('market_data', {}).get('total_supply', None),
+            'market_cap_rank': data.get('market_cap_rank', None),
+            'exchange': ticker_exchange_data.get('market', {}).get('name', None),
             'crypto_pair(usd)': f"{ticker_exchange_data.get('base', '')}/{ticker_exchange_data.get('target', '')}"
-        }
+            }
 
     except requests.RequestException as e:
         print(f"Error fetching data for {crypt_dict['id']}: {e}")
