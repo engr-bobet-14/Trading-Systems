@@ -4,12 +4,22 @@ import re
 import concurrent.futures
 import time
 from requests.adapters import HTTPAdapter, Retry
-from tqdm import tqdm
+import logging
 from utils import tv_pricedata
 import numpy as np
 
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("progress.log"),
+        logging.StreamHandler()
+    ]
+)
+
 #load previous fetch data
-df_prev = pd.read_csv("./data/crypto_marketdata_updated.csv")
+df_prev = pd.read_csv("./data/crypto_marketdata_prev.csv")
 
 #load exchange map
 df_exchange = pd.read_csv("./data/tv-crypto-exchange-info.csv")
@@ -106,10 +116,10 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
 
         if stablecoins_exist(target_coin, stablecoins_df):
             target_coin_symbol = stablecoins_df.loc[target_coin.upper()].symbol
-            crypto_pair=ticker_exchange_data.get('base', '')
+            crypto_symbol=crypt_dict['symbol']
         else:
-            target_coin_symbol = np.nan
-            crypto_pair = np.nan
+            target_coin_symbol = None
+            crypto_symbol= None
             
         return {
             'id': crypt_dict['id'],
@@ -121,7 +131,7 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
             'market_cap_rank': data.get('market_cap_rank', None),
             'exchange': cryptoexchange_map(df_exchange, ticker_exchange_data.get('market', {}).get('name', None)),
             'target_coin': target_coin,
-            'crypto_pair(usd)': f"{crypto_pair}{target_coin_symbol}"
+            'crypto_pair(usd)': f"{crypto_symbol.upper()}{target_coin_symbol.upper()}"
             }
 
     except requests.RequestException as e:
@@ -129,18 +139,20 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
     return None
 
 # Main execution logic with optimized concurrency, batching, progress bar, and interim saving
+
 if __name__ == "__main__":
+
     start_time = time.time()
     crypto_tickers = crypto_ticker_list()
     filtered_crypto_list = []
 
     MAX_WORKERS = 8
-    BATCH_SIZE = 30
-    SLEEP_TIME = 45
+    BATCH_SIZE = 30 
+    SLEEP_TIME = 15
 
     total_batches = (len(crypto_tickers) + BATCH_SIZE - 1) // BATCH_SIZE
 
-    for i in tqdm(range(0, len(crypto_tickers), BATCH_SIZE), desc="Processing Batches"):
+    for i in range(0, len(crypto_tickers), BATCH_SIZE):
         batch = crypto_tickers[i:i + BATCH_SIZE]
         with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             futures = {executor.submit(crypto_market_data, crypto): crypto for crypto in batch}
@@ -151,7 +163,11 @@ if __name__ == "__main__":
 
         pd.DataFrame(filtered_crypto_list).to_csv("crypto_marketdata_interim.csv", index=False)
 
-        if (i // BATCH_SIZE) + 1 < total_batches:
+        # Logging the progress
+        batch_number = (i // BATCH_SIZE) + 1
+        logging.info(f"Processed batch {batch_number}/{total_batches}")
+
+        if batch_number < total_batches:
             time.sleep(SLEEP_TIME)
 
     df = pd.DataFrame(filtered_crypto_list)
