@@ -114,12 +114,19 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
         ticker_exchange_data = data['tickers'][0] if data.get('tickers') else {}
         target_coin=ticker_exchange_data.get('target_coin_id', '')
 
+        #Map stablecoins
         if stablecoins_exist(target_coin, stablecoins_df):
             target_coin_symbol = stablecoins_df.loc[target_coin.upper()].symbol
             crypto_symbol=crypt_dict['symbol']
         else:
             target_coin_symbol = None
             crypto_symbol= None
+        
+        #Check /map correct exchange as per previous data
+        if crypt_dict['id'] in df_prev['id']:
+            CX = df_prev.loc[crypt_dict['id']]['exchange']
+        else:
+            CX = cryptoexchange_map(df_exchange, ticker_exchange_data.get('market', {}).get('name', None))
             
         return {
             'id': crypt_dict['id'],
@@ -129,7 +136,7 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
             'circulation_supply': data.get('market_data', {}).get('circulating_supply', None),
             'total_supply': data.get('market_data', {}).get('total_supply', None),
             'market_cap_rank': data.get('market_cap_rank', None),
-            'exchange': cryptoexchange_map(df_exchange, ticker_exchange_data.get('market', {}).get('name', None)),
+            'exchange': CX,
             'target_coin': target_coin,
             'crypto_pair(usd)': f"{crypto_symbol.upper()}{target_coin_symbol.upper()}"
             }
