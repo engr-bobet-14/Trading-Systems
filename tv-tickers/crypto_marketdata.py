@@ -24,13 +24,6 @@ df_prev = pd.read_csv("./data/crypto_marketdata_prev.csv")
 #load exchange map
 df_exchange = pd.read_csv("./data/tv-crypto-exchange-info.csv")
 
-
-# List of words you want to exclude
-excluded_sc = ['AG', 'AU', 'BUIDL', 'CHF', 'DRT', 'EUR', 'FRAX', 'gold', 'INDR', 'KRW', 'SGD', 'TRY']
-
-# List of words you want to exclude
-excluded_sc = ['AG', 'AU', 'BUIDL', 'CHF', 'DRT', 'EUR', 'FRAX', 'gold', 'INDR', 'KRW', 'SGD', 'TRY']
-
 def stable_coins(df, excluded_sc):
     """
     Filters the given DataFrame for stablecoins and removes unwanted symbols.
@@ -61,15 +54,19 @@ def stablecoins_exist(stable_coin, df_sc):
       return False
   
 def cryptoexchange_map(df, exchange):
-    df['exch_name'] = df['exch_name'].str.upper()
-    df_exch = df.set_index('exch_name')
-    try:
-        # Try to access 'Gate.io'
-        return df_exch.loc[exchange.upper()].exch_id
-    except KeyError:
-        # If 'Gate.io' is not found, return the passed exchange
-        return exchange
+    if exchange is None:
+        return None
+    else:
+        df['exch_name'] = df['exch_name'].str.upper()
+        df_exch = df.set_index('exch_name')
+        try:
+            # Try to access 'Gate.io'
+            return df_exch.loc[exchange.upper()].exch_id
+        except KeyError:
+            # If 'Gate.io' is not found, return the passed exchange
+            return exchange
 
+# List of excluded stablecoins
 excluded_sc = ['AG', 'AU', 'BUIDL', 'CHF', 'DRT', 'EUR', 'FRAX', 'gold', 'INDR', 'KRW', 'SGD', 'TRY']
 
 #list of stablecoins
@@ -116,8 +113,8 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
 
         #Map stablecoins
         if stablecoins_exist(target_coin, stablecoins_df):
-            target_coin_symbol = stablecoins_df.loc[target_coin.upper()].symbol
-            crypto_symbol=crypt_dict['symbol']
+            target_coin_symbol = (stablecoins_df.loc[target_coin.upper()].symbol).upper()
+            crypto_symbol=crypt_dict['symbol'].upper()
         else:
             target_coin_symbol = None
             crypto_symbol= None
@@ -138,7 +135,7 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
             'market_cap_rank': data.get('market_cap_rank', None),
             'exchange': CX,
             'target_coin': target_coin,
-            'crypto_pair(usd)': f"{crypto_symbol.upper()}{target_coin_symbol.upper()}"
+            'crypto_pair(usd)': f"{crypto_symbol}{target_coin_symbol}"
             }
 
     except requests.RequestException as e:
