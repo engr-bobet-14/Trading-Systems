@@ -55,7 +55,7 @@ def stablecoins_exist(stable_coin, df_sc):
   
 def cryptoexchange_map(df, exchange):
     if exchange is None:
-        return None
+        return ""
     else:
         df['exch_name'] = df['exch_name'].str.upper()
         df_exch = df.set_index('exch_name')
@@ -78,7 +78,7 @@ retries = Retry(
     total=10,
     backoff_factor=5,
     status_forcelist=[429, 502, 503, 504],
-    respect_retry_after_header=True
+    respect_retry_after_header=False
 )
 session.mount('https://', HTTPAdapter(max_retries=retries))
 
@@ -116,8 +116,8 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
             target_coin_symbol = (stablecoins_df.loc[target_coin.upper()].symbol).upper()
             crypto_symbol=crypt_dict['symbol'].upper()
         else:
-            target_coin_symbol = None
-            crypto_symbol= None
+            target_coin_symbol = ""
+            crypto_symbol= ""
         
         #Check /map correct exchange as per previous data
         if crypt_dict['id'] in df_prev['id']:
@@ -147,12 +147,12 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
 if __name__ == "__main__":
 
     start_time = time.time()
-    crypto_tickers = crypto_ticker_list()
+    crypto_tickers = crypto_ticker_list()[8745:]
     filtered_crypto_list = []
 
     MAX_WORKERS = 8
     BATCH_SIZE = 30 
-    SLEEP_TIME = 15
+    SLEEP_TIME = 45
 
     total_batches = (len(crypto_tickers) + BATCH_SIZE - 1) // BATCH_SIZE
 
@@ -169,7 +169,8 @@ if __name__ == "__main__":
 
         # Logging the progress
         batch_number = (i // BATCH_SIZE) + 1
-        logging.info(f"Processed batch {batch_number}/{total_batches}")
+        progress_pct = (batch_number / total_batches) * 100
+        logging.info(f"Processed batch {batch_number}/{total_batches} ({progress_pct:.2f}%)")
 
         if batch_number < total_batches:
             time.sleep(SLEEP_TIME)
