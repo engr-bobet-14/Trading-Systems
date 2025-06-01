@@ -1,107 +1,104 @@
-exch_name,exch_id,remarks
-Binance,BINANCE,
-Binance.US,BINANCEUS,
-Bitfinex,BITFINEX,
-bitFlyer,BITFLYER,
-Bitget,BITGET,
-Bithumb,BITHUMB,
-BitMEX,BITMEX,
-Bitstamp,BITSTAMP,
-Bittrex,BITTREX,
-Bybit,BYBIT,
-Crypto.com,CRYPTOCOM,
-Deribit,DERIBIT,
-Gate.io,GATEIO,
-Gemini,GEMINI,
-HTX,HUOBI,
-Kraken,KRAKEN,
-KuCoin,KUCOIN,
-OKX,OKX,
-Poloniex,POLONIEX,
-UpBit,UPBIT,
-WhiteBIT,WHITEBIT,
-WOO X,WOOX,
-Agni (Mantle),Agni (Mantle),Not in TradingView
-BaseSwap (Base),BaseSwap (Base),Not in TradingView
-BCHAIN (Nasdaq Data Link),BCHAIN (Nasdaq Data Link),Not in TradingView
-BingX,BingX,Not in TradingView
-Biswap v2 (BNB chain),Biswap v2 (BNB chain),Not in TradingView
-Bitazza,Bitazza,Not in TradingView
-Bitkub,Bitkub,Not in TradingView
-BitMart,BitMart,Not in TradingView
-Bitrue,Bitrue,Not in TradingView
-Bitso,Bitso,Not in TradingView
-Bitvavo,Bitvavo,Not in TradingView
-BloFin,BloFin,Not in TradingView
-Bluefin (Sui),Bluefin (Sui),Not in TradingView
-Brave New Coin,Brave New Coin,Not in TradingView
-BTSE,BTSE,Not in TradingView
-Camelot v2 (Arbitrum),Camelot v2 (Arbitrum),Not in TradingView
-Camelot v3 (Arbitrum),Camelot v3 (Arbitrum),Not in TradingView
-Cetus (Sui),Cetus (Sui),Not in TradingView
-Cleopatra v2 (Mantle),Cleopatra v2 (Mantle),Not in TradingView
-Coin Metrics,Coin Metrics,Not in TradingView
-CoinEx,CoinEx,Not in TradingView
-Curve (Ethereum),Curve (Ethereum),Not in TradingView
-DeDust.io (TON),DeDust.io (TON),Not in TradingView
-Defi Llama,Defi Llama,Not in TradingView
-Delta Exchange,Delta Exchange,Not in TradingView
-Delta Exchange India,Delta Exchange India,Not in TradingView
-Glassnode,Glassnode,Not in TradingView
-Honeyswap v2 (Gnosis),Honeyswap v2 (Gnosis),Not in TradingView
-IntoTheBlock,IntoTheBlock,Not in TradingView
-Katana (Ronin),Katana (Ronin),Not in TradingView
-KCEX,KCEX,Not in TradingView
-LunarCrush,LunarCrush,Not in TradingView
-Lynex (Linea),Lynex (Linea),Not in TradingView
-Lynex v2 (Linea),Lynex v2 (Linea),Not in TradingView
-Merchant Moe LB (Mantle),Merchant Moe LB (Mantle),Not in TradingView
-MEXC,MEXC,Not in TradingView
-MM Finance (Cronos),MM Finance (Cronos),Not in TradingView
-Nile (Line),Nile (Line),Not in TradingView
-Nile v1 (Line),Nile v1 (Line),Not in TradingView
-Okcoin,Okcoin,Not in TradingView
-Orca (Solana),Orca (Solana),Not in TradingView
-Osmosis,Osmosis,Not in TradingView
-PancakeSwap v2 (BNB chain),PancakeSwap v2 (BNB chain),Not in TradingView
-PancakeSwap v3 (BNB chain),PancakeSwap v3 (BNB chain),Not in TradingView
-PancakeSwap v3 (Ethereum),PancakeSwap v3 (Ethereum),Not in TradingView
-PancakeSwap v3 (Linea),PancakeSwap v3 (Linea),Not in TradingView
-Pangolin v2 (Avalanche),Pangolin v2 (Avalanche),Not in TradingView
-Phemex,Phemex,Not in TradingView
-Pionex,Pionex,Not in TradingView
-Pulsex (Pulsechain),Pulsex (Pulsechain),Not in TradingView
-PulseX v2 (Pulsechain),PulseX v2 (Pulsechain),Not in TradingView
-Pyth,Pyth,Not in TradingView
-QuickSwap v2 (Polygon),QuickSwap v2 (Polygon),Not in TradingView
-QuickSwap v3 (Polygon zkEVM),QuickSwap v3 (Polygon zkEVM),Not in TradingView
-QuickSwap v3 (Polygon),QuickSwap v3 (Polygon),Not in TradingView
-Raydium (Solana),Raydium (Solana),Not in TradingView
-Shadow (Sonic),Shadow (Sonic),Not in TradingView
-SpookySwap v2 (Fantom),SpookySwap v2 (Fantom),Not in TradingView
-STON.fi (TON),STON.fi (TON),Not in TradingView
-SunSwap v2 (TRON),SunSwap v2 (TRON),Not in TradingView
-SunSwap v3 (TRON),SunSwap v3 (TRON),Not in TradingView
-SushiSwap v2 (Ethereum),SushiSwap v2 (Ethereum),Not in TradingView
-SushiSwap v2 (Polygon),SushiSwap v2 (Polygon),Not in TradingView
-Thruster v3 (Blast),Thruster v3 (Blast),Not in TradingView
-Tokenize,Tokenize,Not in TradingView
-Toobit,Toobit,Not in TradingView
-Trader Joe v2 (Avalanche),Trader Joe v2 (Avalanche),Not in TradingView
-Turbos Finance (Sui),Turbos Finance (Sui),Not in TradingView
-Uniswap v2 (Ethereum),Uniswap v2 (Ethereum),Not in TradingView
-Uniswap v3 (Arbitrum),Uniswap v3 (Arbitrum),Not in TradingView
-Uniswap v3 (Avalanche),Uniswap v3 (Avalanche),Not in TradingView
-Uniswap v3 (Base),Uniswap v3 (Base),Not in TradingView
-Uniswap v3 (BNB chain),Uniswap v3 (BNB chain),Not in TradingView
-Uniswap v3 (Ethereum),UNISWAP3ETH,
-Uniswap v3 (Optimism),Uniswap v3 (Optimism),Not in TradingView
-Uniswap v3 (Polygon),Uniswap v3 (Polygon),Not in TradingView
-Velodrome (Optimism),Velodrome (Optimism),Not in TradingView
-Volmex,Volmex,Not in TradingView
-VVS Finance (Cronos),VVS Finance (Cronos),Not in TradingView
-Wagmi (Sonic),Wagmi (Sonic),Not in TradingView
-Webull Pay,Webull Pay,Not in TradingView
-WEEX,WEEX,
-xExchange,xExchange,Not in TradingView
-Zoomex,Zoomex,Not in TradingView
+Name,type,status,coin_gecko_id,tv_exch_id,description
+Binance,CEX,Active,binance,BINANCE,Fully operational
+Agni (Mantle),DEX,Active,,Agni (Mantle),AMM DEX on Mantle
+Bitfinex,CEX,Active,bitfinex,BITFINEX,Long-running centralized exchange
+bitFlyer,CEX,Active,bitflyer,BITFLYER,Licensed Japanese exchange
+Bitget,CEX,Active,bitget,BITGET,Centralized exchange with copy trading
+Bithumb,CEX,Active,bithumb,BITHUMB,South Korea's major exchange
+BitMEX,CEX,Active,bitmex_spot,BITMEX,Crypto derivatives exchange
+Bitstamp,CEX,Active,bitstamp,BITSTAMP,European exchange
+BaseSwap (Base),DEX,Active,,BaseSwap (Base),DEX on Base network
+Bybit,CEX,Active,bybit_spot,BYBIT,Derivatives exchange
+BCHAIN (Nasdaq Data Link),Data Provider,Active,,BCHAIN (Nasdaq Data Link),Blockchain data feeds via Nasdaq Data Link
+Binance.US,CEX,Active,binance_us,BINANCEUS,Active
+Gate.io,CEX,Active,gate,GATEIO,Global altcoin exchange
+Gemini,CEX,Active,gemini,GEMINI,US regulated exchange
+HTX,CEX,Active,huobi,HUOBI,Rebranded from Huobi
+Kraken,CEX,Active,kraken,KRAKEN,US and EU compliant
+KuCoin,CEX,Active,kucoin,KUCOIN,Altcoin-focused exchange
+OKX,CEX,Active,okex,OKX,Multi-product exchange
+Biswap v2 (BNB chain),DEX,Active,,Biswap v2 (BNB chain),BNB Chain AMM
+Bitazza,CEX,Active,,Bitazza,Licensed in Thailand
+WhiteBIT,CEX,Active,whitebit,WHITEBIT,European exchange
+WOO X,CEX,Active,wootrade,WOOX,Centralized trading platform
+BingX,CEX,Active,bingx,BingX,Social trading exchange
+Bittrex,CEX,Inactive,,BITTREX,Ceased operations in 2023
+Bitkub,CEX,Active,bitkub,Bitkub,Thailand's largest exchange
+BitMart,CEX,Active,bitmart,BitMart,Global centralized exchange
+Bitrue,CEX,Active,bitrue,Bitrue,Exchange with DeFi yield products
+Bitso,CEX,Active,bitso,Bitso,Leading Latin American exchange
+Bitvavo,CEX,Active,bitvavo,Bitvavo,Netherlands-based exchange
+Bluefin (Sui),DEX,Active,,Bluefin (Sui),Order-book DEX for spot & derivatives on Sui
+Brave New Coin,Data Provider,Active,,Brave New Coin,Blockchain data and indices provider
+Camelot v2 (Arbitrum),DEX,Active,,Camelot v2 (Arbitrum),DEX on Arbitrum
+Camelot v3 (Arbitrum),DEX,Active,,Camelot v3 (Arbitrum),Upgraded Arbitrum DEX
+Cetus (Sui),DEX,Active,cetus,CETUS,Concentrated liquidity DEX on Sui
+Cleopatra v2 (Mantle),DEX,Active,,Cleopatra v2 (Mantle),AMM DEX on Mantle
+Coin Metrics,Data Provider,Active,,Coin Metrics,Institutional market data provider
+Crypto.com,CEX,Active,crypto_com,CRYPTOCOM,Licensed in multiple countries
+Phemex,CEX,Active,phemex,Phemex,Crypto spot and derivatives exchange
+Curve (Ethereum),DEX,Active,,CURVE,Stablecoin-focused DEX
+DeDust.io (TON),DEX,Active,,DeDust.io (TON),AMM DEX for TON blockchain
+DeFi Llama,Data Provider,Active,,,DeFi analytics and TVL aggregator
+WEEX,CEX,Active,weex,WEEX,Centralized trading platform
+Delta Exchange,CEX,Active,,Delta Exchange,Crypto derivatives exchange
+Delta Exchange India,CEX,Active,,Delta Exchange India,Part of Delta Exchange — centralized derivatives platform
+Deribit,CEX,Active,deribit_spot,DERIBIT,Options and futures trading
+Glassnode,Data Provider,Active,,Glassnode,Blockchain analytics provider
+BloFin,CEX,Active,blofin_spot,BloFin,Centralized exchange with derivatives
+BTSE,CEX,Active,btse,BTSE,Spot and derivatives CEX
+Honeyswap v2 (Gnosis),DEX,Active,,Honeyswap v2 (Gnosis),Uniswap v2 fork on Gnosis Chain (xDai)
+IntoTheBlock,Data Provider,Active,,IntoTheBlock,Crypto data and analytics
+Katana (Ronin),DEX,Active,,Katana (Ronin),DEX on Ronin blockchain
+CoinEx,CEX,Active,coinex,CoinEx,Centralized crypto exchange
+LunarCrush,Data Provider,Active,,LunarCrush,Social metrics aggregator
+Lynex (Linea),DEX,Active,,Lynex (Linea),AMM DEX on Linea
+Lynex v2 (Linea),DEX,Active,,Lynex v2 (Linea),Upgraded AMM DEX on Linea
+Merchant Moe LB (Mantle),DEX,Active,,Merchant Moe LB (Mantle),Liquidity Book DEX on Mantle
+MM Finance (Cronos),DEX,Active,,MM Finance (Cronos),First AMM DEX on Cronos
+Nile (Linea),DEX,Active,,,AMM DEX on Linea
+MEXC,CEX,Active,mxc,MEXC,Centralized exchange with spot and futures
+Nile v1 (Linea),DEX,Active,,,Initial version of Nile DEX
+Okcoin,CEX,Active,,Okcoin,Centralized exchange
+Orca (Solana),DEX,Active,,Orca (Solana),AMM DEX on Solana
+Osmosis,DEX,Active,,Osmosis,Cosmos-based DEX
+PancakeSwap v2 (BNB chain),DEX,Active,,PancakeSwap v2 (BNB chain),BNB Chain AMM DEX
+PancakeSwap v3 (BNB chain),DEX,Active,PancakeSwap V3 (BSC),PANCAKESWAP3BSC,Concentrated liquidity AMM on BNB
+PancakeSwap v3 (Ethereum),DEX,Active,,PancakeSwap v3 (Ethereum),Multi-chain DEX deployment
+PancakeSwap v3 (Linea),DEX,Active,,PancakeSwap v3 (Linea),Linea network deployment
+Pangolin v2 (Avalanche),DEX,Active,,Pangolin v2 (Avalanche),Avalanche-based DEX
+Pionex,CEX,Active,pionex,Pionex,Centralized exchange with built-in bots
+Poloniex,CEX,Active,,POLONIEX,Global exchange
+Pulsex (Pulsechain),DEX,Active,,Pulsex (Pulsechain),Main DEX for PulseChain
+Pyth,Data Provider,Active,,Pyth,Decentralized oracle network
+QuickSwap v2 (Polygon),DEX,Active,,QuickSwap v2 (Polygon),Polygon's main AMM
+QuickSwap v3 (Polygon zkEVM),DEX,Active,,QuickSwap v3 (Polygon zkEVM),zkEVM deployment of QuickSwap
+QuickSwap v3 (Polygon),DEX,Active,,QuickSwap v3 (Polygon),v3 version on Polygon PoS
+Raydium (Solana),DEX,Active,raydium-clmm,RAYDIUM,AMM and liquidity aggregator on Solana
+Shadow (Sonic),DEX,Active,shadow-exchange,SHADOW,Concentrated liquidity DEX on Sonic
+SpookySwap v2 (Fantom),DEX,Active,,SpookySwap v2 (Fantom),Fantom-based AMM DEX
+STON.fi (TON),DEX,Active,,STON.fi (TON),AMM DEX on The Open Network (TON)
+SunSwap v2 (TRON),DEX,Active,,SunSwap v2 (TRON),DEX for TRC-20 tokens
+SunSwap v3 (TRON),DEX,Active,,SunSwap v3 (TRON),Upgraded TRON AMM DEX
+SushiSwap v2 (Ethereum),DEX,Active,,SushiSwap v2 (Ethereum),"Multi-chain DEX, originally a Uniswap fork"
+SushiSwap v2 (Polygon),DEX,Active,,SushiSwap v2 (Polygon),Polygon deployment of SushiSwap
+Tokenize,CEX,Active,tokenize,Tokenize,Centralized exchange based in Singapore/Malaysia
+Toobit,CEX,Active,toobit,Toobit,Centralized exchange
+Thruster v3 (Blast),DEX,Active,,Thruster v3 (Blast),Native DEX on Blast L2
+Trader Joe v2 (Avalanche),DEX,Active,,Trader Joe v2 (Avalanche),Avalanche-based AMM DEX
+Turbos Finance (Sui),DEX,Active,,Turbos Finance (Sui),DEX on Sui blockchain
+Uniswap v2 (Ethereum),DEX,Active,uniswap_v2,UNISWAP,Pioneering AMM DEX
+Uniswap v3 (Arbitrum),DEX,Active,uniswap_v3_arbitrum,UNISWAP3ARBITRUM,Arbitrum deployment
+Uniswap v3 (Avalanche),DEX,Active,,UNISWAPV3AVALANCHE,Avalanche deployment
+Uniswap v3 (Base),DEX,Active,pancakeswap-v3-base,UNISWAP3BASE,Base network deployment
+Uniswap v3 (BNB chain),DEX,Active,,UNISWAP3BNB,BNB Chain deployment
+Uniswap v3 (Ethereum),DEX,Active,uniswap_v3,UNISWAP3ETH,Ethereum mainnet
+Uniswap v3 (Optimism),DEX,Active,,Uniswap v3 (Optimism),Optimism deployment
+Uniswap v3 (Polygon),DEX,Active,,UNISWAP3POL,Polygon PoS deployment
+UpBit,CEX,Active,upbit,UPBIT,Leading South Korean exchange
+Velodrome (Optimism),DEX,Active,,Velodrome (Optimism),Optimism's main liquidity hub
+VVS Finance (Cronos),DEX,Active,,VVS Finance (Cronos),Cronos chain AMM
+Wagmi (Sonic),DEX,Active,,Wagmi,Advanced liquidity strategies on Sonic
+Webull Pay,CEX,Active,,WebullPay,Brokerage service with crypto options
+xExchange,DEX,Active,,xExchange,Formerly Maiar DEX on MultiversX (Elrond)
+Zoomex,CEX,Active,,Zoomex,Spot and futures trading platform
