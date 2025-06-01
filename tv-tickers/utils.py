@@ -1,9 +1,6 @@
 import pandas as pd
 from tvDatafeed import TvDatafeed, Interval
 import configparser
-import logging
-
-headers = {"accept": "application/json"}
 
 def tv_pricedata(ticker: str, exchange: str, timeframe: str = 'daily', num_candles: int = 5) -> pd.DataFrame:
     """
@@ -76,220 +73,252 @@ def tv_pricedata(ticker: str, exchange: str, timeframe: str = 'daily', num_candl
         print(f"    ❌ Error fetching data for {ticker} on {exchange}: {e}")
         return None
 
-def exchange_type(exchange_id):
+
+def crypto_category(df):
     """
-    Check whether the given exchange is centralized (CEX) or decentralized (DEX).
+    Extracts and returns a sorted list of unique category tags from a pandas Series
+    where each entry contains a comma-separated string of tags.
 
     Parameters:
-    exchange_id (str): The exchange ID as used by CoinGecko API.
+    -----------
+    df : pd.Series
+        A pandas Series containing comma-separated category strings (e.g., 'Layer 1, Smart contracts').
 
     Returns:
-    str: 
-        - 'CEX' if the exchange is centralized.
-        - 'DEX' if the exchange is decentralized.
-        - "" (empty string) if any error occurs.
+    --------
+    list
+        A sorted list of unique category tags as strings.
+
+    Example:
+    --------
+    >>> df = pd.Series(['Layer 1, Smart contracts', 'DeFi, Layer 1'])
+    >>> crypto_category(df)
+    ['DeFi', 'Layer 1', 'Smart contracts']
     """
+    unique_tags = (
+        df
+        .str.split(',')       # split by comma
+        .explode()            # flatten to rows
+        .str.strip()          # remove leading/trailing whitespace
+        .dropna()             # remove any NaNs
+        .unique()             # get unique values
+    )
 
-    url = f"https://api.coingecko.com/api/v3/exchanges/{exchange_id}"
+    unique_tags = sorted(unique_tags)
 
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-
-        if response.status_code != 200:
-            print(f"API request failed with status code {response.status_code}")
-            return ""
-
-        res = response.json()
-
-        if 'centralized' not in res:
-            print("The response does not contain 'centralized' field.")
-            return ""
-
-        if res['centralized']:
-            print(f"{exchange_id} is a Centralized Exchange (CEX).")
-            return 'CEX'
-        else:
-            print(f"{exchange_id} is a Decentralized Exchange (DEX).")
-            return 'DEX'
-
-    except requests.exceptions.RequestException as e:
-        print(f"Request error: {e}")
-        return ""
-
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        return ""
+    category_list = []
+    for tag in unique_tags:
+        category_list.append(tag)
     
-import requests
-import pandas as pd
+    return category_list
 
-headers = {"accept": "application/json"}
 
-def CG_exchanges_trade_volume():
+def explode_column(df, column='Category'):
     """
-    Fetches exchange data from CoinGecko and returns a DataFrame 
-    containing exchange IDs, names, and normalized 24-hour trade volumes in BTC.
+    Explodes a comma-separated category column in a DataFrame into multiple rows.
+
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        The input DataFrame containing a column with comma-separated category strings.
+
+    column : str, default='Category'
+        The name of the column to explode.
 
     Returns:
-        pd.DataFrame: A DataFrame indexed by 'coin_gecko_id' with the following columns:
-            - name: Name of the exchange.
-            - trade_volume_24h_btc_normalized: 24-hour trade volume normalized in BTC.
+    --------
+    pd.DataFrame
+        A new DataFrame with the specified column exploded into individual category rows.
 
     Example:
-        df = CG_exchanges_trade_volume()
-        print(df.head())
-
-    Notes:
-        - Uses the CoinGecko public API endpoint: /api/v3/exchanges
-        - Results are sorted in descending order of trade volume.
-        - Requires an active internet connection.
+    --------
+    >>> df_exploded = explode_category_column(df_tvcoins, column='Category')
     """
-    url = "https://api.coingecko.com/api/v3/exchanges"
-    response = requests.get(url, headers=headers)
+    df = df.copy()
 
-    # Check if the request was successful
-    if response.status_code != 200:
-        raise Exception(f"Failed to fetch data from CoinGecko. Status code: {response.status_code}")
+    # Step 1: Split comma-separated strings
+    df[column] = df[column].apply(
+        lambda x: x.split(',') if isinstance(x, str) else x
+    )
 
-    df = pd.DataFrame(response.json())
-    df = df.loc[:, ['id', 'name', 'trade_volume_24h_btc_normalized']]
-    df = df.sort_values(by='trade_volume_24h_btc_normalized', ascending=False)
-    df = df.rename(columns={'id': 'coin_gecko_id'})
-    df.reset_index(drop=True, inplace=True)
-    df.set_index('coin_gecko_id', inplace=True)
-    return df
+    # Step 2: Strip whitespace
+    df[column] = df[column].apply(
+        lambda x: [i.strip() for i in x] if isinstance(x, list) else x
+    )
 
-def tv_get_top_exchanges_by_volume(df_CG_exch_trade_vol, type='CEX', n=10):
+    # Step 3: Explode the list into rows
+    df_exploded = df.explode(column).reset_index(drop=True)
+
+    return df_exploded
+
+def tv_tradingpair(coin):
     """
-    Returns the top 'n' exchange IDs based on 24-hour BTC trading volume, 
-    filtered by exchange type (CEX/DEX).
+    Attempts to find a stablecoin trading pair for the given coin using available price data.
 
-    Args:
-        df_CG_exch_trade_vol (pd.DataFrame): 
-            A DataFrame containing CoinGecko exchange trade volume data. 
-            Must include 'trade_volume_24h_btc_normalized' and use 'coin_gecko_id' as the index.
-        type (str, optional): 
-            The exchange type to filter by (e.g., 'CEX' or 'DEX'). Default is 'CEX'.
-        n (int, optional): 
-            The number of top exchanges to return. Default is 10.
+    It checks the coin paired with each stablecoin in a predefined list. Returns the first
+    available pair with valid price data. Defaults to coin + 'USD' if none are found.
+
+    Parameters:
+        coin (str): Ticker symbol of the cryptocurrency (e.g., 'BTC', 'ETH').
 
     Returns:
-        List[str]: 
-            A list of the top 'n' exchange IDs (tv_exch_id) ordered by 24-hour BTC trading volume descending.
-
-    Notes:
-        - Reads exchange metadata from 'tv-crypto-exchange-info.csv'.
-        - Only includes exchanges with status 'Active' and a valid CoinGecko ID.
-        - If an exchange in the CSV does not exist in the CoinGecko trade volume data, 
-          its volume is set to 0.
+        str: A valid trading pair symbol (e.g., 'BTCUSD'), or defaults to coin + 'USD'.
+    """
+    usd_list = [
+        'USD', 'HUSD', 'BUSD', 'AVUSD', 'FUSD', 'DUSD',
+        'IUSD', '2USD', 'BIUSD', 'RUSD', 'OUSD', 'VUUSD',
+        'GUSD', 'AUSD', 'LUSD', 'SUSD', 'WUSD', 'TUSD',
+        'PUDUSD', 'CUSD', 'ZUSD'
+    ]
     
-    Example:
-        df_CG_exch = CG_exchanges_trade_volume()
-        top_exchanges = tv_top_exch_byvolume(df_CG_exch, type='CEX', n=5)
-        print(top_exchanges)
+    pair_set = [("BTC", "BTCUSD")]
+
+    # Check if already cached
+    for crypto, pair in pair_set:
+        if crypto == coin:
+            return pair
+
+    # Try each stablecoin until one returns data
+    for usd in usd_list:
+        cryptopair = coin + usd
+        pricedata = tv_pricedata(ticker=cryptopair, exchange="CRYPTO", timeframe='daily', num_candles=1)
+        if pricedata is not None:
+            pair_set.append((coin, cryptopair))
+            return cryptopair
+
+    # Fallback if none found
+    return coin + "USD"
+
+def marketcap_index(tv_CryptoScreener, category):
     """
-    # Read exchange data
-    tv_exch = pd.read_csv('./data/tv-crypto-exchange-info.csv')
+    Constructs a TradingView-compatible index string based on the market capitalization 
+    of the top cryptocurrencies within a specific category.
 
-    # Filter active exchanges only
-    tv_exch = tv_exch.loc[tv_exch['status'] == 'Active']
+    Parameters:
+    -----------
+    tv_CryptoScreener : pd.DataFrame
+        A DataFrame containing at least the following columns:
+        - 'Coin': the symbol or identifier of the cryptocurrency
+        - 'Market capitalization': the numerical market cap value
+        - 'Category': a comma-separated string of sector tags
 
-    # Drop rows without coin_gecko_id
-    tv_exch = tv_exch.dropna(subset=['coin_gecko_id'])
-
-    # Set index for easy lookup
-    tv_exch.set_index('coin_gecko_id', inplace=True)
-
-    # Add the volume data from the CoinGecko API
-    for id in tv_exch.index:
-        try:
-            tv_exch.loc[id, 'volume_24h_btc'] = df_CG_exch_trade_vol.loc[id, 'trade_volume_24h_btc_normalized']
-        except KeyError:
-            tv_exch.loc[id, 'volume_24h_btc'] = 0
-
-    # Filter exchanges by type and sort
-    filtered_exch = tv_exch.loc[tv_exch['type'] == type].sort_values('volume_24h_btc', ascending=False)
-
-    # Get top 'n' exchange IDs
-    top_exchanges = filtered_exch.head(n)['tv_exch_id'].to_list()
-
-    return top_exchanges
-
-def fetch_closing_price(crypto_id, ticker, exchanges, df_crypto_prices):
-    """
-    Attempts to fetch the latest closing price for a crypto asset across multiple exchanges.
-
-    Args:
-        crypto_id (str): The ID of the cryptocurrency.
-        ticker (str): The trading pair symbol.
-        exchanges (list): List of exchanges to attempt.
-        df_crypto_prices (DataFrame): DataFrame to update with price and exchange.
+    category : str
+        The category to filter coins by (e.g., 'Layer 1', 'DeFi').
 
     Returns:
-        bool: True if a price was found and updated, False otherwise.
-    """
-    for exch in exchanges:
-        logging.info(f"Trying {ticker} on {exch}...")
-        try:
-            data = tv_pricedata(ticker=ticker, exchange=exch, timeframe='daily', num_candles=1)
-            if data is not None and not data.empty:
-                last_price = data['close'].iloc[-1]
-                df_crypto_prices.loc[crypto_id, 'closing_price'] = last_price
-                df_crypto_prices.loc[crypto_id, 'exchange'] = exch
-                logging.info(f"✅ Found price: {last_price} on {exch}")
-                return True
-            else:
-                logging.warning(f"No data for {ticker} on {exch}")
-        except Exception as e:
-            logging.error(f"Error fetching {ticker} on {exch}: {e}")
-    return False
-
- 
-def cryptoexchange_map(exchange):
-    """
-    Maps a given exchange name to its standardized TradingView exchange ID.
-
-    Args:
-        exchange (str or None): The name of the exchange to map. 
-            If None is provided, returns an empty string.
-
-    Returns:
-        str: The corresponding TradingView exchange ID ('tv_exch_id') if found.
-             If the exchange name is not found in the mapping file, returns the original input.
+    --------
+    str
+        A TradingView index string that aggregates the top 10 coins (by market capitalization)
+        within the specified category. Each entry is formatted as:
+        `'CRYPTO:COINUSD*weight'`, and entries are joined with `'+'`.
 
     Notes:
-        - Uses './data/tv-crypto-exchange-info.csv' as the mapping source.
-        - The CSV must contain a 'Name' column and a 'tv_exch_id' column.
-        - Matching is case-insensitive.
+    ------
+    - Only the top 10 coins by market capitalization in the selected category are included.
+    - The weight of each coin is proportional to its share of the category's total market cap.
+    - The function uses `explode_column()` to normalize comma-separated tags into individual rows.
 
     Example:
-        >>> cryptoexchange_map("Gate.io")
-        'GATEIO'
-
-        >>> cryptoexchange_map("Binance")
-        'BINANCE'
-
-        >>> cryptoexchange_map("UnknownExchange")
-        'UnknownExchange'
+    --------
+    >>> index_str = marketcap_index(df_tvcoins, 'Smart contract platforms')
+    >>> print(index_str)
+    'CRYPTO:ETHUSD*0.42+CRYPTO:ADAUSD*0.28+CRYPTO:SOLUSD*0.30'
     """
-    df = pd.read_csv("./data/tv-crypto-exchange-info.csv").set_index('Name')
+    # Explode category column
+    df = explode_column(tv_CryptoScreener, column='Category')
+    df.set_index('Coin', inplace=True)
 
-    if exchange is None:
-        return ""
+    # Filter by category and compute % of market cap
+    df_cat = df[df['Category'] == category].sort_values(by='Market capitalization', ascending=False)
+    df_cat['%part'] = round(df_cat['Market capitalization'] / df_cat['Market capitalization'].sum(), 2)
 
-    # Standardize names for matching
-    df['Name'] = df.index.str.upper()
-    df_exch = df.set_index('Name')
+    # Limit to top 10 coins by market cap
+    df_cat = df_cat.head(10)
 
-    try:
-        return df_exch.loc[exchange.upper()].tv_exch_id
-    except KeyError:
-        return exchange
+    # Construct TradingView expression
+    coin_list = []
+    for coin in df_cat.index:
+        factor = df_cat.loc[coin, '%part']
+        if factor > 0:
+            ticker = tv_tradingpair(coin)
+            coin_list.append(f'CRYPTO:{ticker}*{factor}')
+    
+    result = '+'.join(coin_list)
+    return result
 
+def capped_marketcap_index(tv_CryptoScreener, category, cap=0.25):
+    """
+    Constructs a TradingView-compatible index string based on the market capitalization
+    of the top cryptocurrencies in a specified category, with an optional weight cap.
+
+    Parameters:
+    -----------
+    tv_CryptoScreener : pd.DataFrame
+        A DataFrame containing at least the following columns:
+        - 'Coin': the symbol of each cryptocurrency (e.g., 'BTC', 'ETH')
+        - 'Market capitalization': the market cap value for each coin
+        - 'Category': a comma-separated string or list of categories per coin
+
+    category : str
+        The category to filter coins by (e.g., 'Layer 1', 'DeFi').
+        The function will include only those coins tagged with this category.
+
+    cap : float, default=0.25
+        The maximum allowed weight (as a decimal) for any single coin in the index.
+        For example, a cap of 0.25 limits any one coin to 25% of the total index weight.
+
+    Returns:
+    --------
+    str
+        A TradingView-compatible index expression, where each entry is formatted as:
+        'CRYPTO:COINUSD*weight', and all entries are joined by '+'.
+        Only the top 10 coins (by market cap) within the selected category are included.
+
+    Example:
+    --------
+    >>> capped_marketcap_index(df, category='Smart contract platforms', cap=0.25)
+    'CRYPTO:ETHUSD*0.25+CRYPTO:SOLUSD*0.22+CRYPTO:ADAUSD*0.18'
+
+    Notes:
+    ------
+    - The weights are capped but not redistributed.
+    - The 'explode_column' helper function is used to normalize multi-category rows.
+    - The function assumes weights are relative to the total market cap of the filtered category.
+    - Rounding is applied to 2 decimal places for TradingView formatting compatibility.
+    """
+    # Explode category column
+    df = explode_column(tv_CryptoScreener, column='Category')
+    df.set_index('Coin', inplace=True)
+
+    # Filter by category and compute market share
+    df_cat = df[df['Category'] == category].sort_values(by='Market capitalization', ascending=False)
+    df_cat['%part'] = df_cat['Market capitalization'] / df_cat['Market capitalization'].sum()
+
+    # Limit to top 10 coins
+    df_cat = df_cat.head(10)
+
+    # Construct TradingView expression with capped weights
+    coin_list = []
+    for coin in df_cat.index:
+        factor = min((df_cat.loc[coin, '%part']).max(), cap)
+        factor = round(factor, 2)
+        if factor > 0:
+            ticker = tv_tradingpair(coin)
+            coin_list.append(f'CRYPTO:{ticker}*{factor}')
+
+    return '+'.join(coin_list)
+
+def crytoindex_bycatergoy(df,file_name, cryptocat_list):
+  with open(f"{file_name}.txt", "w") as f:
+    for category in cryptocat_list:
+      i = capped_marketcap_index(df, category, cap=0.25)
+      if len(i) > 0:
+        f.write(f"###{category}\n")
+        f.write(f"{i}\n")
+
+# Optional test block
 if __name__ == "__main__":
-    # Example usage
-    # Fetch 5 daily candles for BTCUSDT from Binance
-    result = tv_pricedata(ticker='BTCUSDT', exchange='BINANCE', timeframe='daily', num_candles=1)
+    df_sample = tv_pricedata(ticker="GATHUSD", exchange = "CRYPTO", timeframe='daily', num_candles=1)
+    print(df_sample)
+
     
-    if result is not None:
-        print(result)
