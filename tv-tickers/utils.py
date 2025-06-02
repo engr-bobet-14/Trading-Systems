@@ -187,7 +187,7 @@ def tv_tradingpair(coin):
             return cryptopair
 
     # Fallback if none found
-    return coin + "USD"
+    return " "
 
 def marketcap_index(tv_CryptoScreener, category):
     """
@@ -315,6 +315,19 @@ def crytoindex_bycatergoy(df,file_name, cryptocat_list):
       if len(i) > 0:
         f.write(f"###{category}\n")
         f.write(f"{i}\n")
+
+def extract_quote_currency(ticker, base):
+    """
+    Extracts the quote currency from a ticker symbol given the base currency.
+
+    Parameters:
+        ticker (str): The full ticker symbol, e.g., 'BTCUSD'.
+        base (str): The known base currency, e.g., 'BTC'.
+
+    Returns:
+        str: The quote currency, e.g., 'USD'.
+    """
+    return ticker.replace(base, "")
 
 # Optional test block
 if __name__ == "__main__":
