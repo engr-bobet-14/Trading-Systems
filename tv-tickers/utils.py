@@ -151,6 +151,35 @@ def explode_column(df, column='Category'):
 
     return df_exploded
 
+def get_unique_quote_currencies(csv_path):
+    """
+    Reads a CSV file containing cryptocurrency trading pair data, 
+    filters out rows with missing 'quote_currency', and returns a list of 
+    unique quote currencies ordered by frequency.
+
+    Parameters:
+    ----------
+    csv_path : str
+        Path to the CSV file containing the trading pair data.
+
+    Returns:
+    -------
+    List[str]
+        A list of unique quote currencies, ordered from most to least frequent.
+    """
+    # Load the CSV file and drop rows with missing 'quote_currency'
+    df = pd.read_csv(csv_path).dropna(subset=['quote_currency'])
+
+    # Get the 'quote_currency' column
+    quote_currencies = df['quote_currency']
+
+    # Count frequencies of each unique quote currency
+    quote_counts = quote_currencies.value_counts().reset_index()
+    quote_counts.columns = ['quote_currency', 'frequency']
+
+    # Return the list of quote currencies in descending order of frequency
+    return quote_counts['quote_currency'].to_list()
+
 def tv_tradingpair(coin):
     """
     Attempts to find a stablecoin trading pair for the given coin using available price data.
@@ -164,12 +193,7 @@ def tv_tradingpair(coin):
     Returns:
         str: A valid trading pair symbol (e.g., 'BTCUSD'), or defaults to coin + 'USD'.
     """
-    usd_list = [
-        'USD', 'HUSD', 'BUSD', 'AVUSD', 'FUSD', 'DUSD',
-        'IUSD', '2USD', 'BIUSD', 'RUSD', 'OUSD', 'VUUSD',
-        'GUSD', 'AUSD', 'LUSD', 'SUSD', 'WUSD', 'TUSD',
-        'PUDUSD', 'CUSD', 'ZUSD'
-    ]
+    usd_list = get_unique_quote_currencies("./data/tv_cryptopair_database.csv")
     
     pair_set = [("BTC", "BTCUSD")]
 
