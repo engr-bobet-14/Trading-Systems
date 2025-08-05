@@ -135,7 +135,7 @@ def crypto_market_data(crypt_dict, marketcap_min=5000000):
             'market_cap_rank': data.get('market_cap_rank', None),
             'exchange': CX,
             'target_coin': target_coin,
-            'crypto_pair(usd)': f"{crypto_symbol}{target_coin_symbol}"
+            'crypto_pair': f"{crypto_symbol}{target_coin_symbol}"
             }
 
     except requests.RequestException as e:
