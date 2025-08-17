@@ -1,0 +1,5 @@
+pyarrow 
+fastparquet 
+python-binance 
+pandas 
+numpy

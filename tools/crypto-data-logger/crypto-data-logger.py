@@ -21,34 +21,20 @@ Run examples:
   python binance_parquet_logger.py --symbol BTCUSDT --out-dir parquet_dataset --count -1 --interval-sec 60
 """
 
-import os
 import time
-import argparse
 from pathlib import Path
 from datetime import datetime, timezone
-
+import threading
 import numpy as np
 import pandas as pd
 from binance.client import Client
+
 
 # ---------------------- Time/session helpers ----------------------
 
 def iso_now_utc_ms() -> tuple[int, str]:
     now = datetime.now(timezone.utc)
     return int(now.timestamp() * 1000), now.isoformat()
-
-def sessions_from_ts_ms(ts_ms: int) -> dict:
-    dt = datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc)
-    hod = dt.hour + dt.minute / 60
-    dow = dt.weekday()  # 0=Mon
-    return {
-        "iso_utc": dt.isoformat(),
-        "day_of_week": dow,
-        "is_weekend": int(dow >= 5),
-        "asia_session": int(0 <= hod < 8),
-        "europe_session": int(7 <= hod < 16),
-        "us_session": int(13 <= hod < 22),
-    }
 
 def vwap_side(levels):
     if not levels:
@@ -164,11 +150,11 @@ def basis_funding(symbol: str) -> dict:
 # ---------------------- Snapshot + Parquet (Partitioned) ----------------------
 
 def make_snapshot(symbol: str, l2_depth: int, trades_lookback_min: int) -> dict:
-    ts_ms, _ = iso_now_utc_ms()
+    epoch_ms, iso_utc= iso_now_utc_ms()
     row = {
         "symbol": symbol.upper(),
-        "ts_ms": ts_ms,
-        **sessions_from_ts_ms(ts_ms),
+        "ts_ms": epoch_ms,
+        "iso_utc": iso_utc 
     }
     row.update(latest_ohlcv_1m(symbol))
     row.update(l1_quote(symbol))
@@ -223,24 +209,54 @@ def run_logger(symbol: str, out_dir: str, count: int, interval_sec: int, l2_dept
 
 # ---------------------- CLI ----------------------
 
-def main():
-    ap = argparse.ArgumentParser(description="Partitioned Parquet Binance feature logger")
-    ap.add_argument("--symbol", default="BTCUSDT", help="e.g., BTCUSDT/ETHUSDT")
-    ap.add_argument("--out-dir", default="parquet_dataset", help="Output directory for partitioned Parquet files")
-    ap.add_argument("--count", type=int, default=10, help="How many snapshots (-1 = run forever)")
-    ap.add_argument("--interval-sec", type=int, default=60, help="Seconds between snapshots")
-    ap.add_argument("--l2-depth", type=int, default=20, help="Top-N depth for L2 metrics")
-    ap.add_argument("--trades-lookback-min", type=int, default=5, help="Trade window in minutes")
-
-    args = ap.parse_args()
-    run_logger(
-        symbol=args.symbol,
-        out_dir=args.out_dir,
-        count=args.count,
-        interval_sec=args.interval_sec,
-        l2_depth=args.l2_depth,
-        trades_lookback_min=args.trades_lookback_min,
-    )
-
 if __name__ == "__main__":
-    main()
+    import threading
+    import time
+
+    # TIP: For thread-safety, consider moving `client = Client()` inside run_logger()
+    # so each thread has its own client instance.
+
+    symbols = [
+        "BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT",   # core
+        "SOLUSDT", "ADAUSDT", "MATICUSDT", "TRXUSDT", # mid-cap
+        "DOGEUSDT"
+         ]
+
+    # Common settings
+    out_dir = "parquet_dataset"
+    count = -1               # run forever
+    interval_sec = 60
+    l2_depth = 20
+    trades_lookback_min = 5
+
+    threads = []
+
+    print(f"Starting {len(symbols)} symbol loggers (threaded)…")
+    try:
+        for i, sym in enumerate(symbols, 1):
+            t = threading.Thread(
+                target=run_logger,
+                name=f"logger-{sym}",
+                kwargs=dict(
+                    symbol=sym,
+                    out_dir=out_dir,
+                    count=count,
+                    interval_sec=interval_sec,
+                    l2_depth=l2_depth,
+                    trades_lookback_min=trades_lookback_min,
+                ),
+                daemon=True,  # allows fast exit on Ctrl+C
+            )
+            t.start()
+            threads.append(t)
+            print(f"[{i}/{len(symbols)}] launched {sym}")
+            time.sleep(2.0)  # stagger starts to avoid bursty API calls
+
+        # Keep main thread alive; join with timeout to stay responsive to Ctrl+C
+        while any(t.is_alive() for t in threads):
+            for t in threads:
+                t.join(timeout=1.0)
+
+    except KeyboardInterrupt:
+        print("\nStop requested (Ctrl+C). Exiting…")
+        # Threads are daemon=True; they will terminate with the main process.
