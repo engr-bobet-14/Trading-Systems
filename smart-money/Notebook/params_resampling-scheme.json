@@ -130,5 +130,17 @@
         "window_size_for_expected_imbalance_estimation": 2622,
         "initial_estimate_of_expected_n_ticks_in_bar": 2772,
         "batch_size": 85682
+    },
+    {
+        "ticker": "BTCUSDT",
+        "Sampling_Scheme": "expected_tick_imbalance_bars",
+        "n_trials": 200,
+        "n_samples": 29401,
+        "Shapiro-Wilk_statistic": 0.9999843239784241,
+        "Shapiro-Wilk_pvalue": 0.9924382826702495,
+        "window_size_for_expected_n_ticks_estimation": 47,
+        "window_size_for_expected_imbalance_estimation": 7211,
+        "initial_estimate_of_expected_n_ticks_in_bar": 6600,
+        "batch_size": 970131
     }
 ]
