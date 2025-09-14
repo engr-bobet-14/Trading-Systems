@@ -1,0 +1,7 @@
+ticker,time_frame,Sampling_Scheme,n_trials,n_samples,batch_size,Shapiro-Wilk_statistic,Shapiro-Wilk_pvalue,window_size_for_expected_n_ticks_estimation,window_size_for_expected_imbalance_estimation,initial_estimate_of_expected_n_ticks_in_bar
+BTCUSDT,1m,expected_tick_imbalance_bars,50,39167,30275161,0,0,5,2000,50
+BTCUSDT,1m,expected_volume_imbalance_bars,50,39167,30275161,0,0,5,2000,50
+BTCUSDT,1m,expected_dollar_imbalance_bars,50,39167,30275161,0,0,5,2000,50
+BTCUSDT,1m,expected_tick_run_bars,50,39167,30275161,0,0,5,2000,50
+BTCUSDT,1m,expected_volume_run_bars,50,39167,30275161,0,0,5,2000,50
+BTCUSDT,1m,expected_dollar_run_bars,50,39167,30275161,0,0,5,2000,50
