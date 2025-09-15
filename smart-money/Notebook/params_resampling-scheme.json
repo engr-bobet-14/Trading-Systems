@@ -78,17 +78,31 @@
         "initial_estimate_of_expected_n_ticks_in_bar": 50
     },
     {
-        "ticker": "BTCUSDT",
+        "ticker": "symbol",
         "time_frame": "1m",
         "Sampling_Scheme": "expected_tick_imbalance_bars",
-        "n_trials": 200,
+        "n_trials": 320,
         "n_samples": 39167,
-        "batch_size": 20583209,
-        "Shapiro-Wilk_statistic": 0.9222816228866577,
-        "Shapiro-Wilk_pvalue": 4.203895392974451e-45,
-        "retention_ratio": 0.6183777159343324,
-        "window_size_for_expected_n_ticks_estimation": 12,
-        "window_size_for_expected_imbalance_estimation": 15159,
-        "initial_estimate_of_expected_n_ticks_in_bar": 4909
+        "batch_size": 36084470,
+        "Shapiro-Wilk_statistic": 0.9388253092765808,
+        "Shapiro-Wilk_pvalue": 2.667511756688722e-41,
+        "retention_ratio": 0.6175351699134476,
+        "window_size_for_expected_n_ticks_estimation": 152,
+        "window_size_for_expected_imbalance_estimation": 11455,
+        "initial_estimate_of_expected_n_ticks_in_bar": 6981
+    },
+    {
+        "ticker": "symbol",
+        "time_frame": "1m",
+        "Sampling_Scheme": "expected_dollar_run_bars",
+        "n_trials": 320,
+        "n_samples": 39167,
+        "batch_size": 36084470,
+        "Shapiro-Wilk_statistic": 0.9960803985595703,
+        "Shapiro-Wilk_pvalue": 0.9996762871742249,
+        "retention_ratio": 0.0014808384609492685,
+        "window_size_for_expected_n_ticks_estimation": 132,
+        "window_size_for_expected_imbalance_estimation": 5476,
+        "initial_estimate_of_expected_n_ticks_in_bar": 482
     }
 ]
