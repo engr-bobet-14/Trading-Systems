@@ -1,0 +1,74 @@
+# --- Python virtual environments ---
+*venv*/
+
+# --- Python version manager ---
+.python-version
+
+# --- Python cache ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# --- Jupyter Notebook checkpoints ---
+.ipynb_checkpoints/
+
+# --- Project configuration ---
+config.ini
+
+# --- Logs ---
+*.log
+
+# --- OS-specific files ---
+.DS_Store
+Thumbs.db
+# --- Python version manager ---
+.python-version
+
+# --- Python cache ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# --- Jupyter Notebook checkpoints ---
+.ipynb_checkpoints/
+
+# --- Project configuration ---
+config.ini
+
+# --- Logs ---
+*.log
+
+# --- OS-specific files ---
+.DS_Store
+Thumbs.db
+# --- Python version manager ---
+.python-version
+
+# --- Python cache ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# --- Jupyter Notebook checkpoints ---
+.ipynb_checkpoints/
+
+# --- Project configuration ---
+config.ini
+
+# --- Logs ---
+*.log
+
+# --- OS-specific files ---
+.DS_Store
+Thumbs.db.DS_Store
+Thumbs.db
+
+# --- others---
+_datasets/
+_temp
+*_temp*
+
+	
