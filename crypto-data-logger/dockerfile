@@ -1,0 +1,17 @@
+# Use official Python base image
+FROM python:3.11.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy dependency file first (for build cache efficiency)
+COPY requirements.txt .
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the source code
+COPY crypto-data-logger.py .
+
+# Default command
+CMD ["python", "crypto-data-logger.py"]
