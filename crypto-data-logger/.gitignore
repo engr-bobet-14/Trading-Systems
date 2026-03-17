@@ -1,0 +1,9 @@
+.DS_Store
+.vscode/
+__pycache__/
+*.pyc
+.venv_crypto-data-logger/
+parquet_dataset/
+parquet_dataset_raw/
+state/
+_temp.py
