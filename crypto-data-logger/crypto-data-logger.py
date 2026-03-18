@@ -6,6 +6,16 @@ This rewrite stores only normalized raw data and intentionally skips every
 derived feature. It talks directly to Binance's official REST and websocket
 endpoints so the runtime stays lean and avoids unofficial Python wrappers.
 
+Key features:
+- Continuous token buckets, per-endpoint min spacing
+- Endpoint-scoped, half-open circuits with adaptive decay
+- Unified timeout policy + latency buckets
+- Strong trades pagination with fromId continuation + dedupe
+- Arrow Parquet writer with batched writes, periodic fsync, atomic swap
+- Persisted dedupe seeding per shard (reads last few ts_ms)
+- Cross-thread stats aggregation and graceful shutdown (no os._exit)
+- Multi-threaded execution across websocket ingestion, REST backfill, and table writers
+
 Output tables:
 - spot_trades
 - futures_trades
@@ -34,7 +44,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -51,6 +61,13 @@ except ImportError:
 
 BASE_TIMEOUT_SECONDS = 5.0
 SHUTDOWN = threading.Event()
+DEFAULT_SYMBOLS_INPUT = "BTCUSDT,ETHUSDT,ADAUSDT,BNBUSDT,DOGEUSDT,MATICUDST,SOLUSDT,TRXUSDT,XRPUSDT,MONERO"
+SYMBOL_ALIASES = {
+    "MATICUDST": "MATICUSDT",
+    "MONERO": "XMRUSDT",
+    "MONEROUSDT": "XMRUSDT",
+    "XMR": "XMRUSDT",
+}
 
 
 def setup_logging(level: str) -> logging.Logger:
@@ -156,7 +173,12 @@ def parse_symbols(raw: str) -> List[str]:
     seen = set()
     out: List[str] = []
     for item in raw.split(","):
-        symbol = item.strip().upper()
+        raw_symbol = item.strip().upper()
+        if not raw_symbol:
+            continue
+        symbol = SYMBOL_ALIASES.get(raw_symbol, raw_symbol)
+        if symbol != raw_symbol:
+            log.warning("Symbol alias normalized: %s -> %s", raw_symbol, symbol)
         if not symbol or symbol in seen:
             continue
         seen.add(symbol)
@@ -1284,7 +1306,7 @@ class TradeBackfillWorker(threading.Thread):
     def __init__(
         self,
         market: str,
-        symbols: Sequence[str],
+        symbol: str,
         router: TableRouter,
         state_store: StateStore,
         inspector: DatasetInspector,
@@ -1293,9 +1315,9 @@ class TradeBackfillWorker(threading.Thread):
         batch_limit: int = 1000,
         idle_sleep_s: float = 1.0,
     ):
-        super().__init__(name=f"{market}-trade-rest", daemon=False)
+        super().__init__(name=f"{market}-trade-rest-{symbol}", daemon=False)
         self.market = market
-        self.symbols = list(symbols)
+        self.symbol = symbol
         self.router = router
         self.state_store = state_store
         self.inspector = inspector
@@ -1315,18 +1337,18 @@ class TradeBackfillWorker(threading.Thread):
             self.historical_endpoint = "futures_historical_trades"
             self.rest_normalizer = normalize_futures_trade_rest
 
-        self.next_trade_ids: Dict[str, int] = {}
+        self.next_trade_id: Optional[int] = None
 
-    def _bootstrap_next_id(self, symbol: str) -> Optional[int]:
-        cached = self.state_store.load("trade_cursor", self.table_name, symbol)
+    def _bootstrap_next_id(self) -> Optional[int]:
+        cached = self.state_store.load("trade_cursor", self.table_name, self.symbol)
         if cached and as_int(cached.get("next_trade_id")) is not None:
             return int(cached["next_trade_id"])
 
-        inferred = self.inspector.infer_trade_next_id(self.table_name, symbol)
+        inferred = self.inspector.infer_trade_next_id(self.table_name, self.symbol)
         if inferred is not None:
             return inferred
 
-        recent = self.rest.request_json(self.recent_endpoint, {"symbol": symbol, "limit": 1}, retries=3)
+        recent = self.rest.request_json(self.recent_endpoint, {"symbol": self.symbol, "limit": 1}, retries=3)
         if not recent:
             return None
         latest_id = as_int(recent[-1].get("id"))
@@ -1334,30 +1356,30 @@ class TradeBackfillWorker(threading.Thread):
             return None
         return max(0, latest_id - self.initial_backfill_trades + 1)
 
-    def _save_next_id(self, symbol: str, next_trade_id: int) -> None:
+    def _save_next_id(self, next_trade_id: int) -> None:
         self.state_store.save(
             "trade_cursor",
             self.table_name,
-            symbol,
+            self.symbol,
             {
                 "next_trade_id": next_trade_id,
             },
         )
 
-    def _drain_symbol(self, symbol: str) -> bool:
-        next_id = self.next_trade_ids.get(symbol)
+    def _drain_symbol(self) -> bool:
+        next_id = self.next_trade_id
         if next_id is None:
-            next_id = self._bootstrap_next_id(symbol)
+            next_id = self._bootstrap_next_id()
             if next_id is None:
                 return False
-            self.next_trade_ids[symbol] = next_id
+            self.next_trade_id = next_id
 
         progressed_any = False
         while not SHUTDOWN.is_set():
             batch = self.rest.request_json(
                 self.historical_endpoint,
                 {
-                    "symbol": symbol,
+                    "symbol": self.symbol,
                     "fromId": next_id,
                     "limit": self.batch_limit,
                 },
@@ -1380,9 +1402,9 @@ class TradeBackfillWorker(threading.Thread):
                 seen_trade_ids.add(trade_id)
                 if self.market == "spot":
                     row = self.rest_normalizer(item, ingest_ts_ms)
-                    row["symbol"] = symbol
+                    row["symbol"] = self.symbol
                 else:
-                    row = self.rest_normalizer(item, ingest_ts_ms, symbol)
+                    row = self.rest_normalizer(item, ingest_ts_ms, self.symbol)
                 self.router.submit(self.table_name, row)
                 last_trade_id = trade_id
                 progressed_any = True
@@ -1391,8 +1413,8 @@ class TradeBackfillWorker(threading.Thread):
                 return progressed_any
 
             next_id = last_trade_id + 1
-            self.next_trade_ids[symbol] = next_id
-            self._save_next_id(symbol, next_id)
+            self.next_trade_id = next_id
+            self._save_next_id(next_id)
             aggregate_stats_local()
 
             if len(batch) < self.batch_limit:
@@ -1402,26 +1424,15 @@ class TradeBackfillWorker(threading.Thread):
 
     def run(self) -> None:
         try:
-            if not self.rest.api_key:
-                log.warning(
-                    "[%s] BINANCE_API_KEY not set; historicalTrades backfill is disabled and websocket trades remain live only",
-                    self.market,
-                )
-                return
-
             while not SHUTDOWN.is_set():
-                any_progress = False
-                for symbol in self.symbols:
-                    if SHUTDOWN.is_set():
-                        break
-                    try:
-                        any_progress = self._drain_symbol(symbol) or any_progress
-                    except ShutdownRequested:
-                        return
-                    except Exception as exc:
-                        increment_stat(f"err.{self.table_name}.worker")
-                        log.warning("[%s] trade backfill failed for %s: %s", self.market, symbol, exc)
-
+                try:
+                    any_progress = self._drain_symbol()
+                except ShutdownRequested:
+                    return
+                except Exception as exc:
+                    increment_stat(f"err.{self.table_name}.worker")
+                    log.warning("[%s] trade backfill failed for %s: %s", self.market, self.symbol, exc)
+                    any_progress = False
                 aggregate_stats_local()
                 log_stats_periodic()
                 if not any_progress:
@@ -1434,7 +1445,7 @@ class TradeBackfillWorker(threading.Thread):
 class FundingHistoryWorker(threading.Thread):
     def __init__(
         self,
-        symbols: Sequence[str],
+        symbol: str,
         router: TableRouter,
         state_store: StateStore,
         inspector: DatasetInspector,
@@ -1443,8 +1454,8 @@ class FundingHistoryWorker(threading.Thread):
         batch_limit: int = 1000,
         idle_sleep_s: float = 300.0,
     ):
-        super().__init__(name="futures-funding-rest", daemon=False)
-        self.symbols = list(symbols)
+        super().__init__(name=f"futures-funding-rest-{symbol}", daemon=False)
+        self.symbol = symbol
         self.router = router
         self.state_store = state_store
         self.inspector = inspector
@@ -1452,41 +1463,41 @@ class FundingHistoryWorker(threading.Thread):
         self.lookback_hours = max(1, lookback_hours)
         self.batch_limit = max(1, min(1000, batch_limit))
         self.idle_sleep_s = max(5.0, idle_sleep_s)
-        self.next_funding_times: Dict[str, int] = {}
+        self.next_funding_time: Optional[int] = None
 
-    def _bootstrap_next_time(self, symbol: str) -> int:
-        cached = self.state_store.load("funding_cursor", "futures_funding_history", symbol)
+    def _bootstrap_next_time(self) -> int:
+        cached = self.state_store.load("funding_cursor", "futures_funding_history", self.symbol)
         if cached and as_int(cached.get("next_funding_time_ms")) is not None:
             return int(cached["next_funding_time_ms"])
 
-        inferred = self.inspector.infer_funding_next_time(symbol)
+        inferred = self.inspector.infer_funding_next_time(self.symbol)
         if inferred is not None:
             return inferred
 
         return now_utc_ms() - (self.lookback_hours * 60 * 60 * 1000)
 
-    def _save_next_time(self, symbol: str, next_time_ms: int) -> None:
+    def _save_next_time(self, next_time_ms: int) -> None:
         self.state_store.save(
             "funding_cursor",
             "futures_funding_history",
-            symbol,
+            self.symbol,
             {
                 "next_funding_time_ms": next_time_ms,
             },
         )
 
-    def _drain_symbol(self, symbol: str) -> bool:
-        next_time_ms = self.next_funding_times.get(symbol)
+    def _drain_symbol(self) -> bool:
+        next_time_ms = self.next_funding_time
         if next_time_ms is None:
-            next_time_ms = self._bootstrap_next_time(symbol)
-            self.next_funding_times[symbol] = next_time_ms
+            next_time_ms = self._bootstrap_next_time()
+            self.next_funding_time = next_time_ms
 
         progressed_any = False
         while not SHUTDOWN.is_set():
             batch = self.rest.request_json(
                 "futures_funding_rate",
                 {
-                    "symbol": symbol,
+                    "symbol": self.symbol,
                     "startTime": next_time_ms,
                     "limit": self.batch_limit,
                 },
@@ -1507,7 +1518,7 @@ class FundingHistoryWorker(threading.Thread):
                     continue
 
                 seen_times.add(funding_time_ms)
-                row = normalize_funding_history_rest(item, ingest_ts_ms, symbol)
+                row = normalize_funding_history_rest(item, ingest_ts_ms, self.symbol)
                 self.router.submit("futures_funding_history", row)
                 last_time_ms = funding_time_ms
                 progressed_any = True
@@ -1516,8 +1527,8 @@ class FundingHistoryWorker(threading.Thread):
                 return progressed_any
 
             next_time_ms = last_time_ms + 1
-            self.next_funding_times[symbol] = next_time_ms
-            self._save_next_time(symbol, next_time_ms)
+            self.next_funding_time = next_time_ms
+            self._save_next_time(next_time_ms)
             aggregate_stats_local()
 
             if len(batch) < self.batch_limit:
@@ -1528,18 +1539,14 @@ class FundingHistoryWorker(threading.Thread):
     def run(self) -> None:
         try:
             while not SHUTDOWN.is_set():
-                any_progress = False
-                for symbol in self.symbols:
-                    if SHUTDOWN.is_set():
-                        break
-                    try:
-                        any_progress = self._drain_symbol(symbol) or any_progress
-                    except ShutdownRequested:
-                        return
-                    except Exception as exc:
-                        increment_stat("err.futures_funding_history.worker")
-                        log.warning("[futures] funding history failed for %s: %s", symbol, exc)
-
+                try:
+                    any_progress = self._drain_symbol()
+                except ShutdownRequested:
+                    return
+                except Exception as exc:
+                    increment_stat("err.futures_funding_history.worker")
+                    log.warning("[futures] funding history failed for %s: %s", self.symbol, exc)
+                    any_progress = False
                 aggregate_stats_local()
                 log_stats_periodic()
                 if not any_progress:
@@ -1611,9 +1618,9 @@ def make_futures_message_handler(router: TableRouter) -> Callable[[str, Dict[str
 # ---------------------- CLI & app bootstrap ----------------------
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Binance raw market data logger")
-    parser.add_argument("--spot-symbols", default=os.getenv("SPOT_SYMBOLS", "BTCUSDT,ETHUSDT"))
-    parser.add_argument("--futures-symbols", default=os.getenv("FUTURES_SYMBOLS", "BTCUSDT,ETHUSDT"))
-    parser.add_argument("--out-dir", default=os.getenv("OUT_DIR", "parquet_dataset_raw"))
+    parser.add_argument("--spot-symbols", default=os.getenv("SPOT_SYMBOLS", DEFAULT_SYMBOLS_INPUT))
+    parser.add_argument("--futures-symbols", default=os.getenv("FUTURES_SYMBOLS", DEFAULT_SYMBOLS_INPUT))
+    parser.add_argument("--out-dir", default=os.getenv("OUT_DIR", "parquet_binance-datasets"))
     parser.add_argument("--state-dir", default=os.getenv("STATE_DIR", "state"))
     parser.add_argument("--log-level", default=os.getenv("LOG_LEVEL", "INFO"))
     parser.add_argument("--queue-maxsize", type=int, default=int(os.getenv("QUEUE_MAXSIZE", "50000")))
@@ -1726,6 +1733,12 @@ def main() -> int:
     log.info("Output directory: %s", out_dir)
     log.info("State directory: %s", state_dir)
     log.info("BINANCE_API_KEY present: %s", bool(api_key))
+    log.info(
+        "Thread model: %d table writers, %d spot symbols, %d futures symbols",
+        len(required_tables(spot_symbols, futures_symbols)),
+        len(spot_symbols),
+        len(futures_symbols),
+    )
     log.info("=" * 72)
 
     tables = required_tables(spot_symbols, futures_symbols)
@@ -1784,40 +1797,48 @@ def main() -> int:
             )
 
     rest_workers: List[threading.Thread] = []
-    if spot_symbols:
-        rest_workers.append(
-            TradeBackfillWorker(
-                market="spot",
-                symbols=spot_symbols,
-                router=router,
-                state_store=state_store,
-                inspector=inspector,
-                api_key=api_key,
-                initial_backfill_trades=args.initial_trade_backfill_trades,
+    if spot_symbols and api_key:
+        for symbol in spot_symbols:
+            rest_workers.append(
+                TradeBackfillWorker(
+                    market="spot",
+                    symbol=symbol,
+                    router=router,
+                    state_store=state_store,
+                    inspector=inspector,
+                    api_key=api_key,
+                    initial_backfill_trades=args.initial_trade_backfill_trades,
+                )
             )
-        )
+    elif spot_symbols:
+        log.warning("[spot] BINANCE_API_KEY not set; websocket trades stay live but historicalTrades backfill is disabled")
     if futures_symbols:
-        rest_workers.append(
-            TradeBackfillWorker(
-                market="futures",
-                symbols=futures_symbols,
-                router=router,
-                state_store=state_store,
-                inspector=inspector,
-                api_key=api_key,
-                initial_backfill_trades=args.initial_trade_backfill_trades,
+        if api_key:
+            for symbol in futures_symbols:
+                rest_workers.append(
+                    TradeBackfillWorker(
+                        market="futures",
+                        symbol=symbol,
+                        router=router,
+                        state_store=state_store,
+                        inspector=inspector,
+                        api_key=api_key,
+                        initial_backfill_trades=args.initial_trade_backfill_trades,
+                    )
+                )
+        else:
+            log.warning("[futures] BINANCE_API_KEY not set; websocket trades stay live but historicalTrades backfill is disabled")
+        for symbol in futures_symbols:
+            rest_workers.append(
+                FundingHistoryWorker(
+                    symbol=symbol,
+                    router=router,
+                    state_store=state_store,
+                    inspector=inspector,
+                    api_key=api_key,
+                    lookback_hours=args.funding_lookback_hours,
+                )
             )
-        )
-        rest_workers.append(
-            FundingHistoryWorker(
-                symbols=futures_symbols,
-                router=router,
-                state_store=state_store,
-                inspector=inspector,
-                api_key=api_key,
-                lookback_hours=args.funding_lookback_hours,
-            )
-        )
 
     stats_worker = StatsReporter(interval_s=args.stats_interval_s)
     all_workers: List[threading.Thread] = [*writer_workers, *stream_workers, *rest_workers, stats_worker]

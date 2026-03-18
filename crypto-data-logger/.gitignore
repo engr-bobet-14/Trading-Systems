@@ -5,5 +5,6 @@ __pycache__/
 .venv_crypto-data-logger/
 parquet_dataset/
 parquet_dataset_raw/
+parquet_binance-datasets/
 state/
 _temp.py
