@@ -1,5 +1,6 @@
+.git
+.gitignore
 .DS_Store
-.vscode/
 __pycache__/
 *.pyc
 .venv/
@@ -8,6 +9,6 @@ __pycache__/
 parquet_dataset/
 parquet_dataset_raw/
 parquet_binance-datasets/
-secrets/
 state/
+secrets/
 _temp.py

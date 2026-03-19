@@ -1,24 +1,34 @@
-# Use official Python base image
-FROM python:3.11.9-slim
+FROM python:3.11-slim
 
-# Runtime defaults
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     OUT_DIR=parquet_binance-datasets \
-    STATE_DIR=state
+    STATE_DIR=state \
+    HEALTH_PORT=8080 \
+    LOG_LEVEL=INFO
 
-# Set working directory
 WORKDIR /app
 
-# Copy dependency file first (for build cache efficiency)
+RUN adduser --disabled-password --gecos "" appuser
+
 COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the source code
 COPY crypto-data-logger.py .
+COPY canonicalize-trades.py .
+COPY canonicalize-loop.sh .
 COPY README.md .
 
-# Default command
+RUN mkdir -p /app/parquet_binance-datasets /app/state \
+    && chmod +x /app/canonicalize-loop.sh \
+    && chown -R appuser:appuser /app
+
+USER appuser
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD python -c "import os, urllib.request; port=os.environ.get('HEALTH_PORT','8080'); urllib.request.urlopen(f'http://127.0.0.1:{port}/health', timeout=3).read()"
+
 CMD ["python", "crypto-data-logger.py"]

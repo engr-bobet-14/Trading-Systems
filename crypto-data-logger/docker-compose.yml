@@ -1,0 +1,67 @@
+services:
+  crypto-data-logger:
+    image: dataleaf/crypto-data-logger:latest
+    container_name: crypto-data-logger
+    restart: unless-stopped
+    stop_grace_period: 45s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "${HEALTH_PORT:-8080}:8080"
+    environment:
+      BINANCE_API_KEY_FILE: /run/secrets/binance_api_key
+      ENABLE_SPOT: ${ENABLE_SPOT:-true}
+      ENABLE_FUTURES: ${ENABLE_FUTURES:-true}
+      SPOT_SYMBOLS: ${SPOT_SYMBOLS:-BTCUSDT,ETHUSDT,ADAUSDT,BNBUSDT,DOGEUSDT,MATICUSDT,SOLUSDT,TRXUSDT,XRPUSDT,XMRUSDT}
+      FUTURES_SYMBOLS: ${FUTURES_SYMBOLS:-BTCUSDT,ETHUSDT,ADAUSDT,BNBUSDT,DOGEUSDT,MATICUSDT,SOLUSDT,TRXUSDT,XRPUSDT,XMRUSDT}
+      QUOTE_ASSETS: ${QUOTE_ASSETS:-USDT}
+      DISCOVERY_LIMIT: ${DISCOVERY_LIMIT:-0}
+      OUT_DIR: ${OUT_DIR:-parquet_binance-datasets}
+      STATE_DIR: ${STATE_DIR:-state}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      QUEUE_MAXSIZE: ${QUEUE_MAXSIZE:-20000}
+      PARQUET_BATCH_SIZE: ${PARQUET_BATCH_SIZE:-512}
+      SEGMENT_MAX_ROWS: ${SEGMENT_MAX_ROWS:-8192}
+      SEGMENT_MAX_AGE_SECONDS: ${SEGMENT_MAX_AGE_SECONDS:-30}
+      FLUSH_INTERVAL_SECONDS: ${FLUSH_INTERVAL_SECONDS:-2}
+      FSYNC_INTERVAL_SECONDS: ${FSYNC_INTERVAL_SECONDS:-15}
+      MAX_OPEN_PARTITION_WRITERS: ${MAX_OPEN_PARTITION_WRITERS:-16}
+      PARTITION_WRITER_IDLE_CLOSE_SECONDS: ${PARTITION_WRITER_IDLE_CLOSE_SECONDS:-5}
+      DEDUPE_WINDOW_SECONDS: ${DEDUPE_WINDOW_SECONDS:-900}
+      WS_MAX_STREAMS_PER_CONNECTION: ${WS_MAX_STREAMS_PER_CONNECTION:-120}
+      INITIAL_TRADE_BACKFILL_TRADES: ${INITIAL_TRADE_BACKFILL_TRADES:-1000}
+      FUNDING_LOOKBACK_HOURS: ${FUNDING_LOOKBACK_HOURS:-168}
+      STATS_INTERVAL_SECONDS: ${STATS_INTERVAL_SECONDS:-30}
+      HEALTH_PORT: 8080
+    secrets:
+      - source: binance_api_key
+        target: binance_api_key
+    volumes:
+      - ./parquet_binance-datasets:/app/parquet_binance-datasets
+      - ./state:/app/state
+
+  canonicalize-trades:
+    image: dataleaf/crypto-data-logger:latest
+    container_name: canonicalize-trades
+    restart: unless-stopped
+    profiles: ["canonicalize"]
+    depends_on:
+      crypto-data-logger:
+        condition: service_started
+    environment:
+      OUT_DIR: ${OUT_DIR:-parquet_binance-datasets}
+      CANONICALIZE_INTERVAL_SECONDS: ${CANONICALIZE_INTERVAL_SECONDS:-300}
+      CANONICALIZE_MARKETS: ${CANONICALIZE_MARKETS:-spot,futures}
+      CANONICALIZE_SYMBOLS: ${CANONICALIZE_SYMBOLS:-BTCUSDT,ETHUSDT,ADAUSDT,BNBUSDT,DOGEUSDT,MATICUSDT,SOLUSDT,TRXUSDT,XRPUSDT,XMRUSDT}
+      CANONICALIZE_DERIVE_QUOTE_QUANTITY: ${CANONICALIZE_DERIVE_QUOTE_QUANTITY:-true}
+      CANONICALIZE_LOG_LEVEL: ${CANONICALIZE_LOG_LEVEL:-INFO}
+    command: ["/app/canonicalize-loop.sh"]
+    volumes:
+      - ./parquet_binance-datasets:/app/parquet_binance-datasets
+      - ./state:/app/state
+
+secrets:
+  binance_api_key:
+    file: ${BINANCE_API_KEY_SECRET_FILE:-./secrets/binance_api_key.txt}

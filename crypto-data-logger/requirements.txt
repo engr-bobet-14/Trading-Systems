@@ -1,3 +1,8 @@
-pyarrow==21.0.0
-requests==2.32.5
-websockets==15.0.1
+aiohttp>=3.11,<4
+httpx>=0.28,<0.29
+prometheus-client>=0.21,<1
+pyarrow>=21.0.0,<22
+pydantic>=2.9,<3
+pydantic-settings>=2.6,<3
+structlog>=24.4,<26
+websockets>=15,<16
